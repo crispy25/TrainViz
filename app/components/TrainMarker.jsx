@@ -12,7 +12,7 @@ const DefaultIcon = L.icon({
 const trainIcon = L.icon({
   iconUrl: 'https://icons.veryicon.com/png/o/object/material-design-icons/train-21.png',
   iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  iconAnchor: [16, 16],
 });
 
 L.Marker.prototype.options.icon = trainIcon;
