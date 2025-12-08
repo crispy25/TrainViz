@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Train } from "../models/Train";
 import "./TrainMarker";
 import { Coord, InvalidCoord } from "../models/Coord";
@@ -11,17 +11,14 @@ function secondsToTime(sec: number): string {
   const m = ((sec / 60) | 0) % 60;
   const s = sec % 60;
 
-  return (h < 10 ? "0" : "") + h +
-         ":" +
-         (m < 10 ? "0" : "") + m +
-         ":" +
-         (s < 10 ? "0" : "") + s;
+  return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
 }
 
 export default function RailwayMap() {
   const [trainServices, setTrainServices] = useState<any>({});
   const [time, setTime] = useState(0);
   const [positions, setPositions] = useState<{ [id: number]: Coord }>({});
+  const [stopNames, setStopNames] = useState<{ [id: string]: string }>({});
   const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
@@ -34,6 +31,8 @@ export default function RailwayMap() {
       .then((res) => res.json())
       .then((data) => {
         setTrainServices(data);
+
+        console.log(data.stopNames);
 
         // Initialize Train instances for all train IDs
         const trainIds = Object.keys(data.routeIds).slice(1, 100); // For now, show only first 100 routes
@@ -56,6 +55,7 @@ export default function RailwayMap() {
 
         trainsRef.current = newTrains;
         setPositions(initialPositions);
+        setStopNames(data.stopNames);
       });
   }, []);
 
@@ -113,7 +113,17 @@ export default function RailwayMap() {
         {trainIds.map((idStr) => {
           const id = Number(idStr);
           const pos = positions[id];
-          return pos && pos != InvalidCoord ? <Marker key={id} position={[pos[0], pos[1]]} /> : null;
+          const train = trainsRef.current[id];
+          return pos && pos != InvalidCoord ?
+          <Marker key={id} position={[pos[0], pos[1]]}> 
+          <Popup offset={[0, -10]}>
+            <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {id}</span><br />
+            <span style={{ fontSize: "12px" }}>
+              🛤️ Route: {stopNames[train.route[0].toString()]} - {stopNames[train.route[train.route.length - 1].toString()]}<br />
+              ⏭️ Next Stop: {stopNames[train.route[train.next_stop_id].toString()]}
+            </span>
+          </Popup>
+          </Marker> : null;
         })}
       </MapContainer>
 

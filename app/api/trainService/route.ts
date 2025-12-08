@@ -9,11 +9,14 @@ export async function GET() {
   const stopIdsFile = path.join(process.cwd(), "public", "stops.json");
   const stopIds = JSON.parse(fs.readFileSync(stopIdsFile, "utf8"));
 
+  const stopNamesFile = path.join(process.cwd(), "public", "coord_stop_names.json");
+  const stopNames = JSON.parse(fs.readFileSync(stopNamesFile, "utf8"));
+
   const timesFile = path.join(process.cwd(), "public", "train_times.json");
   const times = JSON.parse(fs.readFileSync(timesFile, "utf8"));
 
   const routeIdsFile = path.join(process.cwd(), "public", "train_routes.json");
   const routeIds = JSON.parse(fs.readFileSync(routeIdsFile, "utf8"));
 
-  return NextResponse.json({ paths: paths, times: times, stopIds: stopIds, routeIds: routeIds });
+  return NextResponse.json({ paths: paths, times: times, stopIds: stopIds, routeIds: routeIds, stopNames: stopNames });
 }

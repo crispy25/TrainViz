@@ -1,6 +1,7 @@
 import { INFINITE_CACHE } from "next/dist/lib/constants";
 import { Coord, InvalidCoord } from "./Coord";
 
+
 function dist(a: Coord, b: Coord): number {
     const dx = a[0] - b[0];
     const dy = a[1] - b[1];
@@ -36,10 +37,10 @@ export class Train {
     route: Coord[] = []
     stop_ids: Int32Array = new Int32Array()
     stop_timestamps: Int32Array = new Int32Array()
+    next_stop_id: number = 1
 
     last_time: number = INFINITE_CACHE
     last_index: number = 0
-
     distance_cache: Int32Array = new Int32Array()
 
     constructor(id: number, shortname: string, service_day_mask: number) {
@@ -96,6 +97,7 @@ export class Train {
 
         const current_station_id = this.stop_ids[index];
         const next_station_id = this.stop_ids[index + 1];
+        this.next_stop_id = next_station_id;
 
         let total_dist = 0;
         if (this.distance_cache[index] == 0) {
