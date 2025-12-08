@@ -4,76 +4,67 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import { Train } from "../models/Train";
 import "./TrainMarker";
+import { Coord, InvalidCoord } from "../models/Coord";
 
 function secondsToTime(sec: number): string {
-  const hours = Math.floor(sec / 3600);
-  const minutes = Math.floor((sec % 3600) / 60);
-  const seconds = sec % 60;
+  const h = (sec / 3600) | 0;
+  const m = ((sec / 60) | 0) % 60;
+  const s = sec % 60;
 
-  return [
-    hours.toString().padStart(2, "0"),
-    minutes.toString().padStart(2, "0"),
-    seconds.toString().padStart(2, "0")
-  ].join(":");
+  return (h < 10 ? "0" : "") + h +
+         ":" +
+         (m < 10 ? "0" : "") + m +
+         ":" +
+         (s < 10 ? "0" : "") + s;
 }
 
 export default function RailwayMap() {
-  // persistent train instance
-  const trainRef = useRef<Train | null>(null);
-  if (!trainRef.current) {
-    trainRef.current = new Train(1655, "R", 255);
-  }
-  const train = trainRef.current;
-
   const [trainServices, setTrainServices] = useState<any>({});
-  const [trainId, setTrainId] = useState<number>(1655);
-
   const [time, setTime] = useState(0);
+  const [positions, setPositions] = useState<{ [id: number]: Coord }>({});
   const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   const totalTime = 86400; // 24 hours
+  const trainsRef = useRef<{ [id: number]: Train }>({});
 
-  // -------------------------------------
-  // LOAD SERVICE DATA ONCE
-  // -------------------------------------
+  // Load train services
   useEffect(() => {
     fetch("/api/trainService")
       .then((res) => res.json())
       .then((data) => {
         setTrainServices(data);
 
-        // initialize with default train
-        const routeIndex = data.routeIds[trainId];
-        train.setStopTimes(data.times[trainId]);
-        train.setRoute(data.paths[routeIndex]);
-        train.setStopIds(data.stopIds[routeIndex]);
+        // Initialize Train instances for all train IDs
+        const trainIds = Object.keys(data.routeIds).slice(1, 100); // For now, show only first 100 routes
+        const newTrains: { [id: number]: Train } = {};
+        const initialPositions: { [id: number]: Coord } = {};
+
+        trainIds.forEach((idStr) => {
+          const id = Number(idStr); 
+          const routeIndex = data.routeIds[id];
+            if (routeIndex in data.paths) {
+              const train = new Train(id, "R", 255);
+              train.setStopTimes(data.times[id]);
+              train.setRoute(data.paths[routeIndex]);
+              train.setStopIds(data.stopIds[routeIndex]);
+
+              newTrains[id] = train;
+              initialPositions[id] = InvalidCoord;
+          }
+        });
+
+        trainsRef.current = newTrains;
+        setPositions(initialPositions);
       });
   }, []);
 
-  // -------------------------------------
-  // UPDATE TRAIN WHEN USER SELECTS NEW ONE
-  // -------------------------------------
-  useEffect(() => {
-    if (!trainServices.routeIds) return;
-
-    train.id = trainId;
-
-    const routeIndex = trainServices.routeIds[trainId];
-
-    train.setStopTimes(trainServices.times[trainId]);
-    train.setRoute(trainServices.paths[routeIndex]);
-    train.setStopIds(trainServices.stopIds[routeIndex]);
-  }, [trainId, trainServices]);
-
-  // -------------------------------------
-  // TIME INTERVAL TICK
-  // -------------------------------------
+  // Update time interval
   useEffect(() => {
     if (!isDragging) {
       intervalRef.current = window.setInterval(() => {
-        setTime((prev) => (prev + 1) % totalTime);
-      }, 10); // fast tick
+        setTime((prev) => (prev + 5) % totalTime);
+      }, 50); // adjust speed here
     }
 
     return () => {
@@ -84,51 +75,49 @@ export default function RailwayMap() {
     };
   }, [isDragging]);
 
-  const position = train.hasRoute()
-    ? train.getNextPositionAt(time)
-    : [0, 0];
+  // Update all train positions
+  useEffect(() => {
+    let cancelled = false;
+
+    Object.values(trainsRef.current).forEach(async (train) => {
+      if (!train.hasRoute()) return;
+
+      const pos = await train.getNextPositionAt(time);
+      if (!cancelled) {
+        setPositions((prev) => ({
+          ...prev,
+          [train.id]: pos
+        }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [time]);
 
   const timeStr = secondsToTime(time);
+  const trainIds = trainServices.routeIds ? Object.keys(trainServices.routeIds) : [];
 
-  const trainIds = trainServices.routeIds
-    ? Object.keys(trainServices.routeIds)
-    : [];
-
-  // -------------------------------------
-  // UI
-  // -------------------------------------
   return (
     <div style={{ height: "100vh", width: "100%" }}>
-
-
-      {/* TRAIN SELECTION DROPDOWN */}
-      <div style={{ display: "flex", justifyContent: "center", margin: "8px" }}>
-        <select
-          value={trainId}
-          onChange={(e) => setTrainId(Number(e.target.value))}
-          style={{ fontSize: "16px", padding: "4px", backgroundColor: "black" }}
-        >
-          {trainIds.map((id) => (
-            <option key={id} value={id}>
-              Train {id}
-            </option>
-          ))}
-        </select>
-      </div>
-
-
+      {/* Map */}
       <MapContainer
         center={[45.9432, 24.9668]}
         zoom={7}
-        style={{ height: "80%", width: "100%" }}
+        style={{ height: "90%", width: "100%" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <TileLayer url="https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png" />
 
-        <Marker position={[position[0], position[1]]} />
+        {trainIds.map((idStr) => {
+          const id = Number(idStr);
+          const pos = positions[id];
+          return pos && pos != InvalidCoord ? <Marker key={id} position={[pos[0], pos[1]]} /> : null;
+        })}
       </MapContainer>
 
-      {/* TIME SLIDER */}
+      {/* Time slider */}
       <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
         <input
           type="range"
@@ -143,9 +132,7 @@ export default function RailwayMap() {
         />
       </div>
 
-      <div style={{ textAlign: "center", marginTop: "10px" }}>
-        Time: {timeStr}
-      </div>
+      <div style={{ textAlign: "center", marginTop: "10px" }}>Time: {timeStr}</div>
     </div>
   );
 }
