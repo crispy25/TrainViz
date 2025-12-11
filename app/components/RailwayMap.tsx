@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import { Train } from "../models/Train";
 import "./TrainMarker";
 import { Coord, InvalidCoord } from "../models/Coord";
+import StationIcon from "./StationMarker";
 
 function secondsToTime(sec: number): string {
   const h = (sec / 3600) | 0;
@@ -14,6 +15,17 @@ function secondsToTime(sec: number): string {
   return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
 }
 
+type Station = {
+  lat: number;
+  lng: number;
+  name: string;
+};
+
+function isDaytime(sec: number): boolean {
+  const hour = Math.floor(sec / 3600);
+  return hour >= 6 && hour < 18;
+}
+
 export default function RailwayMap() {
   const [trainServices, setTrainServices] = useState<any>({});
   const [time, setTime] = useState(0);
@@ -21,6 +33,10 @@ export default function RailwayMap() {
   const [stopNames, setStopNames] = useState<{ [id: string]: string }>({});
   const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<number | null>(null);
+
+  const [selectedTrainId, setSelectedTrainId] = useState<number | null>(null);
+  const [selectedStations, setSelectedStations] = useState<Station[]>([]);
+  const [selectedRouteCoords, setSelectedRouteCoords] = useState<Coord[]>([]);
 
   const totalTime = 86400; // 24 hours
   const trainsRef = useRef<{ [id: number]: Train }>({});
@@ -96,6 +112,54 @@ export default function RailwayMap() {
     };
   }, [time]);
 
+  // Calculate stations and the route for the selected train
+  useEffect(() => {
+    if (
+      selectedTrainId === null ||
+      !trainServices.routeIds ||
+      !trainServices.paths ||
+      !trainServices.stopIds
+    ) {
+      setSelectedStations([]);
+      setSelectedRouteCoords([]);
+      return;
+    }
+
+    const routeIndex = trainServices.routeIds[selectedTrainId];
+    if (routeIndex === undefined) {
+      setSelectedStations([]);
+      setSelectedRouteCoords([]);
+      return;
+    }
+
+    const path = trainServices.paths[routeIndex];
+    const stopIdxs = trainServices.stopIds[routeIndex];
+
+    if (!path || !stopIdxs) {
+      setSelectedStations([]);
+      setSelectedRouteCoords([]);
+      return;
+    }
+
+    const stations: Station[] = [];
+
+    (stopIdxs as number[]).forEach((idx) => {
+      const coord = path[idx];
+      if (!coord) return;
+      const key = coord.toString();
+      const name = stopNames[key] ?? key;
+
+      stations.push({
+        lat: coord[0],
+        lng: coord[1],
+        name,
+      });
+    });
+
+    setSelectedStations(stations);
+    setSelectedRouteCoords(path as Coord[]);
+  }, [selectedTrainId, trainServices, stopNames]);
+
   const timeStr = secondsToTime(time);
   const trainIds = trainServices.routeIds ? Object.keys(trainServices.routeIds) : [];
 
@@ -110,12 +174,25 @@ export default function RailwayMap() {
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <TileLayer url="https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png" />
 
+        {/* Highlight selected train route */}
+        {selectedRouteCoords.length > 0 && (
+          <Polyline
+            positions={selectedRouteCoords.map((coord) => [coord[0], coord[1]])}
+            pathOptions={{ color: "red", weight: 4 }}
+          />
+        )}
+
+        {/* Trains */}
         {trainIds.map((idStr) => {
           const id = Number(idStr);
           const pos = positions[id];
           const train = trainsRef.current[id];
           return pos && pos != InvalidCoord ?
-          <Marker key={id} position={[pos[0], pos[1]]}> 
+          <Marker
+            key={id}
+            position={[pos[0], pos[1]]}
+            eventHandlers={{ click: () => setSelectedTrainId(id) }}
+          > 
           <Popup offset={[0, -10]}>
             <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {id}</span><br />
             <span style={{ fontSize: "12px" }}>
@@ -125,6 +202,25 @@ export default function RailwayMap() {
           </Popup>
           </Marker> : null;
         })}
+
+        {/* Selected train's stations */}
+        {selectedStations.map((station, idx) => (
+          <Marker
+            key={`station-${selectedTrainId}-${idx}`}
+            position={[station.lat, station.lng]}
+            icon={StationIcon}
+          >
+            <Popup>
+              <span style={{ fontSize: "15px", fontWeight: "bold" }}>
+                {isDaytime(time) ? "🏙️" : "🌆"} {station.name}
+              </span>
+              <br />
+              <span style={{ fontSize: "12px" }}>
+                {station.lat.toFixed(5)}, {station.lng.toFixed(5)}
+              </span>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
 
       {/* Time slider */}
