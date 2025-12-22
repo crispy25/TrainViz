@@ -4,27 +4,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import { Train } from "../models/Train";
 import "./TrainMarker";
-import { Coord, InvalidCoord } from "../models/Coord";
+import { Coord, InvalidCoord, Station } from "../utils/types";
 import StationIcon from "./StationMarker";
+import { secondsToTimeStr, isDaytime } from "../utils/utils";
+import { SECONDS_IN_A_DAY } from "../utils/constants";
 
-function secondsToTime(sec: number): string {
-  const h = (sec / 3600) | 0;
-  const m = ((sec / 60) | 0) % 60;
-  const s = sec % 60;
-
-  return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
-}
-
-type Station = {
-  lat: number;
-  lng: number;
-  name: string;
-};
-
-function isDaytime(sec: number): boolean {
-  const hour = Math.floor(sec / 3600);
-  return hour >= 6 && hour < 18;
-}
 
 export default function RailwayMap() {
   const [trainServices, setTrainServices] = useState<any>({});
@@ -38,7 +22,6 @@ export default function RailwayMap() {
   const [selectedStations, setSelectedStations] = useState<Station[]>([]);
   const [selectedRouteCoords, setSelectedRouteCoords] = useState<Coord[]>([]);
 
-  const totalTime = 86400; // 24 hours
   const trainsRef = useRef<{ [id: number]: Train }>({});
 
   // Load train services
@@ -48,8 +31,6 @@ export default function RailwayMap() {
       .then((data) => {
         setTrainServices(data);
 
-        console.log(data.stopNames);
-
         // Initialize Train instances for all train IDs
         const trainIds = Object.keys(data.routeIds).slice(1, 100); // For now, show only first 100 routes
         const newTrains: { [id: number]: Train } = {};
@@ -57,12 +38,12 @@ export default function RailwayMap() {
 
         trainIds.forEach((idStr) => {
           const id = Number(idStr); 
-          const routeIndex = data.routeIds[id];
-            if (routeIndex in data.paths) {
+          const routeId = data.routeIds[id];
+            if (routeId in data.paths) {
               const train = new Train(id, "R", 255);
               train.setStopTimes(data.times[id]);
-              train.setRoute(data.paths[routeIndex]);
-              train.setStopIds(data.stopIds[routeIndex]);
+              train.setRoutePath(data.paths[routeId]);
+              train.setStopIds(data.stopIds[routeId]);
 
               newTrains[id] = train;
               initialPositions[id] = InvalidCoord;
@@ -79,7 +60,7 @@ export default function RailwayMap() {
   useEffect(() => {
     if (!isDragging) {
       intervalRef.current = window.setInterval(() => {
-        setTime((prev) => (prev + 5) % totalTime);
+        setTime((prev) => (prev + 5) % SECONDS_IN_A_DAY);
       }, 50); // adjust speed here
     }
 
@@ -160,7 +141,7 @@ export default function RailwayMap() {
     setSelectedRouteCoords(path as Coord[]);
   }, [selectedTrainId, trainServices, stopNames]);
 
-  const timeStr = secondsToTime(time);
+  const timeStr = secondsToTimeStr(time);
   const trainIds = trainServices.routeIds ? Object.keys(trainServices.routeIds) : [];
 
   return (
@@ -196,8 +177,8 @@ export default function RailwayMap() {
           <Popup offset={[0, -10]}>
             <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {id}</span><br />
             <span style={{ fontSize: "12px" }}>
-              🛤️ Route: {stopNames[train.route[0].toString()]} - {stopNames[train.route[train.route.length - 1].toString()]}<br />
-              ⏭️ Next Stop: {stopNames[train.route[train.next_stop_id].toString()]}
+              🛤️ Route: {stopNames[train.path[0].toString()]} - {stopNames[train.path[train.path.length - 1].toString()]}<br />
+              ⏭️ Next Stop: {stopNames[train.path[train.next_stop_id].toString()]}
             </span>
           </Popup>
           </Marker> : null;
@@ -228,7 +209,7 @@ export default function RailwayMap() {
         <input
           type="range"
           min={0}
-          max={totalTime}
+          max={SECONDS_IN_A_DAY}
           step={1}
           value={time}
           style={{ width: "60%" }}
