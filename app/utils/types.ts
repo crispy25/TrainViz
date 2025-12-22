@@ -7,11 +7,15 @@ export type Station = {
   name: string;
 };
 
-export type TrainServiceTimesDataType = { [id: number] : Int32Array };
-export type TrainRouteDataType = { [id: number] : number };
+export type TrainStopTimesDataType = { [id: number] : Int32Array };
+export type TrainRoutesDataType = { [id: number] : number };
+export type TrainServicesDataType = { [id: number] : number };
+export type TrainShortnamesDataType = { [id: number] : string };
 export type TrainDynamicDataType = {
-  trainTimes: TrainServiceTimesDataType,
-  trainRoutes: TrainRouteDataType
+  trainTimes: TrainStopTimesDataType,
+  trainRoutes: TrainRoutesDataType,
+  trainServices: TrainServicesDataType,
+  trainShortnames: TrainShortnamesDataType
 };
 
 export type RoutePathsDataType = { [id: number] : Coord[] };

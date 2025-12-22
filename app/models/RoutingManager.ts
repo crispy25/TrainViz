@@ -1,4 +1,4 @@
-import { Coord, RoutePathsDataType, RouteStopIdsDataType, StopNamesDataType, TrainDynamicDataType, TrainStaticDataType } from "../utils/types";
+import { Coord, RoutePathsDataType, RouteStopIdsDataType, StopNamesDataType } from "../utils/types";
 
 
 export class RoutingManager {

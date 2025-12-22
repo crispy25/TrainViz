@@ -119,10 +119,10 @@ export default function RailwayMap() {
 			eventHandlers={{ click: () => setSelectedTrainId(id) }}
 		  > 
 		  <Popup offset={[0, -10]}>
-			<span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {id}</span><br />
+			<span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.getShortname()} {id}</span><br />
 			<span style={{ fontSize: "12px" }}>
-			  {/* 🛤️ Route: {stopNames[train.path[0].toString()]} - {stopNames[train.path[train.path.length - 1].toString()]}<br /> */}
-			  {/* ⏭️ Next Stop: {stopNames[train.path[train.next_stop_id].toString()]} */}
+			  🛤️ Route: {routingManager.getStopName(train.getPathElement(0).toString())} - {routingManager.getStopName(train.getPathElement(train.getPathLength() - 1).toString())}<br />
+			  ⏭️ Next Stop: {routingManager.getStopName(train.getPathElement(train.getNextStopIdx()).toString())}
 			</span>
 		  </Popup>
 		  </Marker> : null;

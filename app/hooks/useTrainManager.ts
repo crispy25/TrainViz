@@ -14,7 +14,7 @@ export function useTrainManager(routingManager: RoutingManager) {
 		fetch("/api/v1/trains/years/" + selectedYear)
 			.then((res) => res.json())
 			.then((data: TrainDynamicDataType) => {
-				trainManagerRef.current.updateTrainData(data.trainTimes, data.trainRoutes);
+				trainManagerRef.current.updateTrainData(data.trainTimes, data.trainRoutes, data.trainServices, data.trainShortnames);
 			});
 	}, []);
 

@@ -17,17 +17,21 @@ async function readJSON(file: string, year: string) {
 export async function GET(_req: Request, { params }: Params) {
   const { year } = await params;
 
-  const [trainTimesJSON, trainRoutesJSON] = await Promise.all([
+  const [trainTimesJSON, trainRoutesJSON, trainServicesJSON, trainShortnamesJSON] = await Promise.all([
     readJSON("train_id_times.json", year),
     readJSON("train_id_route_id.json", year),
+    readJSON("train_id_service_id.json", year),
+    readJSON("train_id_shortname.json", year),
   ]);
 
   const trainTimes = stringToIntKeysDict(trainTimesJSON);
   const trainRoutes = stringToIntValuesDict(stringToIntKeysDict(trainRoutesJSON));
+  const trainServices = stringToIntValuesDict(stringToIntKeysDict(trainServicesJSON));
+  const trainShortnames = stringToIntKeysDict(trainShortnamesJSON);
 
   try {
     return NextResponse.json<TrainDynamicDataType>(
-      { trainTimes, trainRoutes },
+      { trainTimes, trainRoutes, trainServices, trainShortnames },
       {
         // TODO: Add caching
         // headers: {
