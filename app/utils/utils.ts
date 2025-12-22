@@ -38,3 +38,17 @@ export function lerpCoord(a: Coord, b: Coord, t: number): Coord {
     r[1] = a[1] + t * (b[1] - a[1]);
     return r;
 }
+
+export function stringToIntKeysDict(data: { [id: string] : any }) {
+  return Object.entries(data).reduce((acc, [key, value]) => {
+    acc[Number(key)] = value;
+    return acc;
+  }, {} as { [id: number] : any });
+}
+
+export function stringToIntValuesDict(data: { [id: number] : string }) {
+  return Object.entries(data).reduce((acc, [key, value]) => {
+    acc[Number(key)] = Number(value);
+    return acc;
+  }, {} as { [id: number] : number });
+}
