@@ -111,7 +111,7 @@ export default function RailwayMap() {
 		{/* Trains */}
 		{ trainManager.getActiveTrains().map((train) => {
 		  const id = train.getID();
-		  const trainPosition = train.getPostion();
+		  const trainPosition = train.getPosition();
 		  return trainPosition != INVALID_COORD ?
 		  <Marker
 			key={id}
@@ -119,7 +119,7 @@ export default function RailwayMap() {
 			eventHandlers={{ click: () => setSelectedTrainId(id) }}
 		  > 
 		  <Popup offset={[0, -10]}>
-			<span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.getShortname()} {id}</span><br />
+			<span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.toString()}</span><br />
 			<span style={{ fontSize: "12px" }}>
 			  🛤️ Route: {routingManager.getStopName(train.getPathElement(0).toString())} - {routingManager.getStopName(train.getPathElement(train.getPathLength() - 1).toString())}<br />
 			  ⏭️ Next Stop: {routingManager.getStopName(train.getPathElement(train.getNextStopIdx()).toString())}

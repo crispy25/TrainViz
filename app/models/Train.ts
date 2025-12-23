@@ -6,7 +6,7 @@ import { INVALID_COORD, TRAIN_ALL_WEEK_SERVICE, TRAIN_DEFAULT_NAME } from "../ut
 
 export class Train {
   private id: number
-  private shortname: string = TRAIN_DEFAULT_NAME
+  private name: string = TRAIN_DEFAULT_NAME
   private service_day_mask: number = TRAIN_ALL_WEEK_SERVICE
   private path: Coord[] = []
   private stop_idxs: Int32Array = new Int32Array()
@@ -21,7 +21,7 @@ export class Train {
 
   constructor(id: number, shortname: string, service_day_mask: number, path: Coord[], stop_idxs: Int32Array, stops_timestamps: Int32Array) {
     this.id = id;
-    this.shortname = shortname;
+    this.name = shortname + " " + id.toString();
     this.service_day_mask = service_day_mask;
     this.path = path;
     this.stop_timestamps = stops_timestamps;
@@ -43,11 +43,11 @@ export class Train {
     return this.id;
   }
 
-  getShortname() {
-    return this.shortname;
+  toString() {
+    return this.name;
   }
 
-  getPostion() {
+  getPosition() {
     return this.position;
   }
 
