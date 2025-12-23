@@ -1,23 +1,23 @@
 import { Marker, Popup } from "react-leaflet";
-import { RoutingManager } from "../models/RoutingManager";
+import { RoutingManager } from "../models/RouteManager";
 import { TrainManager } from "../models/TrainManager";
 import { INVALID_COORD } from "../utils/constants";
 import "./TrainMarker";
 
 type TrainMarkersProps = {
-  trainManager: TrainManager;
-  routingManager: RoutingManager;
+  trainManager: TrainManager | null;
+  routingManager: RoutingManager | null;
   setSelectedTrainId: (id: number) => void;
 };
 
 export function TrainMarkers({trainManager, routingManager, setSelectedTrainId}: TrainMarkersProps) {
   return (
     <>
-      { trainManager.getActiveTrains().map((train) => {
+      { trainManager?.getActiveTrains().map((train) => {
           const id = train.getID();
           const trainPosition = train.getPosition();
 
-          if (trainPosition === INVALID_COORD)
+          if (trainPosition === INVALID_COORD || routingManager === null)
             return null;
 
           const routeStart = routingManager.getStopName(train.getPathElement(0).toString());

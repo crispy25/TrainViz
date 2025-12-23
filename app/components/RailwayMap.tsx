@@ -48,7 +48,7 @@ export default function RailwayMap() {
 
 	// Update all train positions
 	useEffect(() => {
-		trainManager.updateTrainPositions(time);
+		trainManager?.updateTrainPositions(time);
 	}, [time]);
 
   // Calculate stations and the route for the selected train
@@ -59,15 +59,15 @@ export default function RailwayMap() {
 	  return;
 	}
 
-	const routeIndex = trainManager.getTrainRouteId(selectedTrainId);
+	const routeIndex = trainManager?.getTrainRouteId(selectedTrainId);
 	if (routeIndex === undefined) {
 	  setSelectedStations([]);
 	  setSelectedRouteCoords([]);
 	  return;
 	}
 
-	const path = routingManager.getRoutePath(routeIndex);
-	const stopIdxs = routingManager.getRouteStopIds(routeIndex);
+	const path = routingManager?.getRoutePath(routeIndex);
+	const stopIdxs = routingManager?.getRouteStopIds(routeIndex);
 
 	if (!path || !stopIdxs) {
 	  setSelectedStations([]);
@@ -81,7 +81,7 @@ export default function RailwayMap() {
 	  const coord = path[idx];
 	  if (!coord) return;
 	  const key = coord.toString();
-	  const name = routingManager.getStopName(key) ?? key;
+	  const name = routingManager?.getStopName(key) ?? key;
 
 	  stations.push({
 		lat: coord[0],

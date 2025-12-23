@@ -1,17 +1,18 @@
 import { useEffect, useRef } from "react";
-import { RoutingManager } from "../models/RoutingManager";
+import { RoutingManager } from "../models/RouteManager";
 import { TrainStaticDataType } from "../utils/types";
 
 "use client";
 
 export function useRoutingManager() {
-  const routingManagerRef = useRef<RoutingManager>(new RoutingManager());
+  const routingManagerRef = useRef<RoutingManager | null>(null);
 
   useEffect(() => {
     fetch("/api/v1/trains/static")
         .then((res) => res.json())
         .then((data: TrainStaticDataType) => {
-            routingManagerRef.current.updateRoutingData(data.routePaths, data.routeStopIds, data.stopNames);
+            if (!routingManagerRef.current)
+              routingManagerRef.current = new RoutingManager(data.routePaths, data.routeStopIds, data.stopNames);
         });
   }, []);
 

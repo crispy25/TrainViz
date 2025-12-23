@@ -1,6 +1,6 @@
 import { MAX_ACTIVE_TRAINS, TRAIN_ALL_WEEK_SERVICE, TRAIN_DEFAULT_NAME } from "../utils/constants";
 import { TrainRoutesDataType, TrainServicesDataType, TrainShortnamesDataType, TrainStopTimesDataType } from "../utils/types";
-import { RoutingManager } from "./RoutingManager";
+import { RoutingManager } from "./RouteManager";
 import { Train } from "./Train";
 
 

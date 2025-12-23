@@ -6,7 +6,7 @@ export class RoutingManager {
   private staticRouteStopIds: { [id: number] : Int32Array } = {};
   private staticStopNames: { [id: string] : string } = {};
 
-  updateRoutingData(routePaths: RoutePathsDataType, routeStopIds: RouteStopIdsDataType, stopNames: StopNamesDataType) {
+  constructor(routePaths: RoutePathsDataType, routeStopIds: RouteStopIdsDataType, stopNames: StopNamesDataType) {
       this.staticRoutePaths = routePaths;
       this.staticRouteStopIds = routeStopIds;
       this.staticStopNames = stopNames;
