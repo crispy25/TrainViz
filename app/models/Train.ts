@@ -27,6 +27,17 @@ export class Train {
     this.stop_timestamps = stops_timestamps;
     this.stop_idxs = stop_idxs;
     this.distance_cache = new Float32Array(stop_idxs.length)
+
+    for (let index = 0; index < stop_idxs.length - 1; index++) {
+      const current_stop_idx = this.stop_idxs[index];
+      const next_stop_idx = this.stop_idxs[index + 1];
+      
+      let total_dist = 0;
+      for (let i = current_stop_idx; i < next_stop_idx; i++)
+          total_dist += dist(this.path[i], this.path[i + 1])
+
+      this.distance_cache[index + 1] = total_dist;
+    }
   }
 
   hasRoute(): boolean {
@@ -79,10 +90,8 @@ export class Train {
         time >= this.stop_timestamps[this.stop_timestamps.length - 2]) return INVALID_COORD;
 
     let index = 0;
-    if (time >= this.last_time) { // Jump stations if time goes forward
-        this.last_time = time;
+    if (time >= this.last_time) // Jump stations if time goes forward
         index = this.last_index;
-    }
 
     while (index < this.stop_timestamps.length) {
         if (this.stop_timestamps[index] >= time)
@@ -91,6 +100,7 @@ export class Train {
         index += 2;
     }
     this.last_index = index;
+    this.last_time = time;
 
     const arrival_timestamp = this.stop_timestamps[index];
     const departure_timestamp = this.stop_timestamps[index - 1];
@@ -106,20 +116,11 @@ export class Train {
     const next_stop_idx = this.stop_idxs[index + 1];
     this.next_stop_idx = next_stop_idx;
 
-    let total_dist = 0;
-    if (this.distance_cache[index] == 0) {
-        for (let i = current_stop_idx; i < next_stop_idx; i++)
-            total_dist += dist(this.path[i], this.path[i + 1])
-
-        this.distance_cache[index] = total_dist;
-    } else {
-        total_dist = this.distance_cache[index];
-    }
-
+    let total_dist = this.distance_cache[index + 1];
     const distance = total_dist * timeElapsedPercentage(departure_timestamp, arrival_timestamp, time);
 
-    if (distance < 0.00001)
-      return this.path[next_stop_idx];
+    if (distance < 0.001)
+      return this.path[current_stop_idx];
 
     let current_dist = 0;
     let last_dist = 0;
