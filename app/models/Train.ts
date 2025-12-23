@@ -118,6 +118,9 @@ export class Train {
 
     const distance = total_dist * timeElapsedPercentage(departure_timestamp, arrival_timestamp, time);
 
+    if (distance < 0.00001)
+      return this.path[next_stop_idx];
+
     let current_dist = 0;
     let last_dist = 0;
     let i = current_stop_idx;
