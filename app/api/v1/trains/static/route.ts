@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { TrainStaticDataType } from "@/app/utils/types";
-import { stringToIntKeysDict } from "@/app/utils/utils";
+import { dictKeysToInt } from "@/app/utils/utils";
 import fs from "fs/promises";
 import path from "path";
 
@@ -18,8 +18,8 @@ export async function GET() {
       readJSON("coord_stop_name.json")
     ]);
 
-    const routePaths = stringToIntKeysDict(routePathsJSON);
-    const routeStopIds = stringToIntKeysDict(routeStopIdsJSON);
+    const routePaths = dictKeysToInt(routePathsJSON);
+    const routeStopIds = dictKeysToInt(routeStopIdsJSON);
 
     return NextResponse.json<TrainStaticDataType>(
       { routePaths, routeStopIds, stopNames },

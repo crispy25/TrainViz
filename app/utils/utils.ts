@@ -39,16 +39,21 @@ export function lerpCoord(a: Coord, b: Coord, t: number): Coord {
     return r;
 }
 
-export function stringToIntKeysDict(data: { [id: string] : any }) {
+function extractInt(text: string): number {
+  const match = text.match(/\d+/);
+  return match ? Number.parseInt(match[0], 10) : 0;
+}
+
+export function dictKeysToInt(data: { [id: string] : any }) {
   return Object.entries(data).reduce((acc, [key, value]) => {
-    acc[Number(key)] = value;
+    acc[extractInt(key)] = value;
     return acc;
   }, {} as { [id: number] : any });
 }
 
-export function stringToIntValuesDict(data: { [id: number] : string }) {
+export function dictKeyValuesToInt(data: { [id: number] : string }) {
   return Object.entries(data).reduce((acc, [key, value]) => {
-    acc[Number(key)] = Number(value);
+    acc[extractInt(key)] = Number(value);
     return acc;
   }, {} as { [id: number] : number });
 }

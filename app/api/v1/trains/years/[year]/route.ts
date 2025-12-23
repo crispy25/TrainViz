@@ -1,6 +1,6 @@
 import { TrainDynamicDataType } from "@/app/utils/types";
 import { NextResponse } from "next/server";
-import { stringToIntKeysDict, stringToIntValuesDict } from "@/app/utils/utils";
+import { dictKeysToInt, dictKeyValuesToInt } from "@/app/utils/utils";
 import fs from "fs/promises";
 import path from "path";
 
@@ -24,10 +24,10 @@ export async function GET(_req: Request, { params }: Params) {
     readJSON("train_id_shortname.json", year),
   ]);
 
-  const trainTimes = stringToIntKeysDict(trainTimesJSON);
-  const trainRoutes = stringToIntValuesDict(stringToIntKeysDict(trainRoutesJSON));
-  const trainServices = stringToIntValuesDict(stringToIntKeysDict(trainServicesJSON));
-  const trainShortnames = stringToIntKeysDict(trainShortnamesJSON);
+  const trainTimes = dictKeysToInt(trainTimesJSON);
+  const trainRoutes = dictKeyValuesToInt(trainRoutesJSON);
+  const trainServices = dictKeyValuesToInt(trainServicesJSON);
+  const trainShortnames = dictKeysToInt(trainShortnamesJSON);
 
   try {
     return NextResponse.json<TrainDynamicDataType>(
