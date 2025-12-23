@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import { secondsToTimeStr, isDaytime } from "../utils/utils";
-import { INVALID_COORD, SECONDS_IN_A_DAY } from "../utils/constants";
-import { useTrainManager } from "../hooks/useTrainManager";
+import { SECONDS_IN_A_DAY } from "../utils/constants";
 import { useRoutingManager } from "../hooks/useRoutingManager";
+import { useTrainManager } from "../hooks/useTrainManager";
 import { Coord, Station } from "../utils/types";
 import StationIcon from "./StationMarker";
-import "./TrainMarker";
+import { TrainMarkers } from "./TrainMarkers";
 
 
 export default function RailwayMap() {
@@ -23,7 +23,7 @@ export default function RailwayMap() {
 	const [selectedStations, setSelectedStations] = useState<Station[]>([]);
 	const [selectedRouteCoords, setSelectedRouteCoords] = useState<Coord[]>([]);
 
-  // Update time interval
+  	// Update time interval
 	useEffect(() => {
 		if (!isDragging) {
 			intervalRef.current = window.setInterval(() => {
@@ -109,24 +109,7 @@ export default function RailwayMap() {
 		)}
 
 		{/* Trains */}
-		{ trainManager.getActiveTrains().map((train) => {
-		  const id = train.getID();
-		  const trainPosition = train.getPosition();
-		  return trainPosition != INVALID_COORD ?
-		  <Marker
-			key={id}
-			position={[trainPosition[0], trainPosition[1]]}
-			eventHandlers={{ click: () => setSelectedTrainId(id) }}
-		  > 
-		  <Popup offset={[0, -10]}>
-			<span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.toString()}</span><br />
-			<span style={{ fontSize: "12px" }}>
-			  🛤️ Route: {routingManager.getStopName(train.getPathElement(0).toString())} - {routingManager.getStopName(train.getPathElement(train.getPathLength() - 1).toString())}<br />
-			  ⏭️ Next Stop: {routingManager.getStopName(train.getPathElement(train.getNextStopIdx()).toString())}
-			</span>
-		  </Popup>
-		  </Marker> : null;
-		})}
+		{<TrainMarkers trainManager={trainManager} routingManager={routingManager} setSelectedTrainId={setSelectedTrainId}/>}
 
 		{/* Selected train's stations */}
 		{selectedStations.map((station, idx) => (
