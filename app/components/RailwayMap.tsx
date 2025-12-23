@@ -9,6 +9,7 @@ import { useTrainManager } from "../hooks/useTrainManager";
 import { Coord, Station } from "../utils/types";
 import StationIcon from "./StationMarker";
 import { TrainMarkers } from "./TrainMarkers";
+import { ToggleButton } from "./ToggleButton";
 
 
 export default function RailwayMap() {
@@ -18,6 +19,7 @@ export default function RailwayMap() {
 	const [time, setTime] = useState(0);
 	const [isDragging, setIsDragging] = useState(false);
 	const intervalRef = useRef<number | null>(null);
+  const [timeAutoIncEnabled, setTimeAutoIncEnabled] = useState(true);
 
 	const [selectedTrainId, setSelectedTrainId] = useState<number | null>(null);
 	const [selectedStations, setSelectedStations] = useState<Station[]>([]);
@@ -25,7 +27,12 @@ export default function RailwayMap() {
 
   	// Update time interval
 	useEffect(() => {
-		if (!isDragging) {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+		if (timeAutoIncEnabled && !isDragging) {
 			intervalRef.current = window.setInterval(() => {
 			setTime((prev) => (prev + 5) % SECONDS_IN_A_DAY);
 			}, 50); // adjust speed here
@@ -33,11 +40,11 @@ export default function RailwayMap() {
 
 		return () => {
 			if (intervalRef.current !== null) {
-			clearInterval(intervalRef.current);
-			intervalRef.current = null;
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
 			}
 		};
-	}, [isDragging]);
+	}, [timeAutoIncEnabled, isDragging]);
 
 	// Update all train positions
 	useEffect(() => {
@@ -132,21 +139,27 @@ export default function RailwayMap() {
 	  </MapContainer>
 
 	  {/* Time slider */}
-	  <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
-		<input
-		  type="range"
-		  min={0}
-		  max={SECONDS_IN_A_DAY}
-		  step={1}
-		  value={time}
-		  style={{ width: "60%" }}
-		  onMouseDown={() => setIsDragging(true)}
-		  onMouseUp={() => setIsDragging(false)}
-		  onChange={(e) => setTime(Number(e.target.value))}
-		/>
-	  </div>
+	  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: "14px" }}>
+      <ToggleButton
+        textOn="▶️"
+        textOff="⏸️"
+        isOn={timeAutoIncEnabled}
+        onToggle={() => setTimeAutoIncEnabled((v) => !v)}
+      />
 
-	  <div style={{ textAlign: "center", marginTop: "10px" }}>Time: {timeStr}</div>
+      <input
+        type="range"
+        min={0}
+        max={SECONDS_IN_A_DAY}
+        step={1}
+        value={time}
+        style={{ width: "60%" }}
+        onMouseDown={() => setIsDragging(true)}
+        onMouseUp={() => setIsDragging(false)}
+        onChange={(e) => setTime(Number(e.target.value))}
+      />
+	  </div>
+	  <div style={{ textAlign: "center", marginTop: "2px" }}>Time: {timeStr}</div>
 	</div>
   );
 }
