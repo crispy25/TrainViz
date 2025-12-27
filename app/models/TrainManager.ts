@@ -1,18 +1,14 @@
-import { MAX_ACTIVE_TRAINS, TRAIN_ALL_WEEK_SERVICE, TRAIN_DEFAULT_NAME } from "../utils/constants";
-import { TrainRoutesDataType, TrainServicesDataType, TrainShortnamesDataType, TrainStopTimesDataType } from "../utils/types";
-import { RoutingManager } from "./RouteManager";
+import { INVALID_DATE, MAX_ACTIVE_TRAINS } from "../utils/constants";
+import { TrainDataType } from "../utils/types";
+import { RoutingManager } from "./RoutingManager";
 import { Train } from "./Train";
 
 
 export class TrainManager {
-  private trainTimes: TrainStopTimesDataType = {};
-  private trainRoutes: TrainRoutesDataType = {};
-  private trainServices: TrainServicesDataType = {};
-  private trainShortnames: TrainShortnamesDataType = {};
-
+  private trains: { [id: string] : Train } = {}
   private activeTrains: Train[] = []
   private maxActiveTrains: number;
-
+  private lastSelectedDate: Date = INVALID_DATE;
   private routingManager: RoutingManager;
 
   constructor(routingManager: RoutingManager, maxActiveTrains: number = MAX_ACTIVE_TRAINS) {
@@ -20,39 +16,38 @@ export class TrainManager {
       this.maxActiveTrains = maxActiveTrains;
   }
 
-  updateTrainData(trainTimes: TrainStopTimesDataType, trainRoutes: TrainRoutesDataType, trainServices: TrainServicesDataType, trainShortnames: TrainShortnamesDataType) {
-    const activeTrainIds = Object.keys(trainRoutes).slice(1, this.maxActiveTrains); // TODO: Load random trains?
-    this.trainTimes = trainTimes;
-    this.trainRoutes = trainRoutes;
-    this.trainServices = trainServices;
-    this.trainShortnames = trainShortnames;
+  updateTrainData(date: Date, trainData: TrainDataType) {
+    this.lastSelectedDate = date;
+    this.trains = {}
 
-    this.activeTrains = [];
-    activeTrainIds.forEach((idStr) => {
-        const id = Number(idStr);
-        const routeId = this.trainRoutes[id];
-        const routePath = this.routingManager.getRoutePath(routeId);
-        const routeStopIds = this.routingManager.getRouteStopIds(routeId);
-        if (routePath !== undefined && routeStopIds !== undefined) {
-            const train = new Train(id, trainShortnames[id] ?? TRAIN_DEFAULT_NAME, TRAIN_ALL_WEEK_SERVICE, routePath, routeStopIds, this.trainTimes[id]);
-            this.activeTrains.push(train);
-        }
+    const trainIds = Object.keys(trainData).slice(0, this.maxActiveTrains).map(Number);
+    trainIds.forEach((id) => {
+      const train = new Train(id, trainData[id], this.routingManager);
+      this.trains[id] = train;
     });
+
+    this.updateActiveTrains(date);
   }
 
   async updateTrainPositions(time: number) {
-    for (const train of this.activeTrains) {
-      if (!train.hasRoute())
-        continue;
+    for (const train of this.activeTrains)
       train.updatePosition(time);
-    }
+  }
+ 
+  updateActiveTrains(date: Date) {
+    const day = date.getDay();
+    this.activeTrains = Object.values(this.trains).filter((train) => train.isActiveOnDay(day));
   }
 
   getActiveTrains() {
-      return this.activeTrains;
+    return this.activeTrains;
   }
 
-  getTrainRouteId(train_id: number) {
-      return this.trainRoutes[train_id];
+  getTrain(id: number) {
+    return this.trains[id];
+  }
+
+  getLastSelectedDate() {
+    return this.lastSelectedDate;
   }
 }

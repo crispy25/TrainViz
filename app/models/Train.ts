@@ -1,138 +1,148 @@
 import { INFINITE_CACHE } from "next/dist/lib/constants";
-import { Coord } from "../utils/types";
-import { dist, timeElapsedPercentage, lerpCoord } from "../utils/utils";
-import { INVALID_COORD, TRAIN_ALL_WEEK_SERVICE, TRAIN_DEFAULT_NAME } from "../utils/constants";
+import { Coord, Path, TrainMetaDataType } from "../utils/types";
+import { timeElapsedPercentage, lerpCoord, distanceBetween } from "../utils/client-utils";
+import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD } from "../utils/constants";
+import { RoutingManager } from "./RoutingManager";
 
 
 export class Train {
   private id: number
-  private name: string = TRAIN_DEFAULT_NAME
-  private service_day_mask: number = TRAIN_ALL_WEEK_SERVICE
-  private path: Coord[] = []
-  private stop_idxs: Int32Array = new Int32Array()
-  private stop_timestamps: Int32Array = new Int32Array()
-  private next_stop_idx: number = 1
+  private name: string
+  private activeDays: number
+  private stops: string[] = []
+  private stopTimestamps: Int32Array = new Int32Array()
+  private nextStopIdx: number = 1
+  private path: Path = new Float32Array();
+  private stopCoords: Coord[] = [];
+  private updateCallsCnt: number = 0
+  private distanceBetweenStops: Float32Array = new Float32Array()
   private position: Coord = INVALID_COORD;
-  private _updateCallsCnt: number = 0
 
-  private last_index: number = 0
-  private last_time: number = INFINITE_CACHE
-  private distance_cache: Float32Array = new Float32Array()
+  private lastStopIndex: number = -1
+  private lastTimestampIndex: number = -1
+  private lastTime: number = INFINITE_CACHE
 
-  constructor(id: number, shortname: string, service_day_mask: number, path: Coord[], stop_idxs: Int32Array, stops_timestamps: Int32Array) {
+  private routingManager: RoutingManager;
+
+  constructor(id: number, meta: TrainMetaDataType, routingManager: RoutingManager) {
     this.id = id;
-    this.name = shortname + " " + id.toString();
-    this.service_day_mask = service_day_mask;
-    this.path = path;
-    this.stop_timestamps = stops_timestamps;
-    this.stop_idxs = stop_idxs;
-    this.distance_cache = new Float32Array(stop_idxs.length)
+    this.name = meta.name + " " + id.toString();
+    this.activeDays = meta.activeDays;
+    this.stopTimestamps = meta.stopTimes;
+    this.stops = meta.stopNames;
 
-    for (let index = 0; index < stop_idxs.length - 1; index++) {
-      const current_stop_idx = this.stop_idxs[index];
-      const next_stop_idx = this.stop_idxs[index + 1];
-      
-      let total_dist = 0;
-      for (let i = current_stop_idx; i < next_stop_idx; i++)
-          total_dist += dist(this.path[i], this.path[i + 1])
-
-      this.distance_cache[index + 1] = total_dist;
-    }
+    this.routingManager = routingManager;
+    this.distanceBetweenStops = routingManager.getDistanceBetweenStops(this.stops);
+    this.stopCoords = this.stops.map((stop) => routingManager.getStopCoords(stop));
   }
 
-  hasRoute(): boolean {
-    return this.path.length > 0;
+  isActiveOnDay(dayOfWeek: number) {
+    return this.activeDays & (1 << dayOfWeek);
   }
 
   clearCache() {
-    this.last_index = 0
-    this.last_time = INFINITE_CACHE
-    this.distance_cache = new Float32Array(this.stop_idxs.length)
+    this.lastTime = INFINITE_CACHE
+    this.lastTimestampIndex = -1
+    this.lastStopIndex = -1
   }
 
   getID() {
     return this.id;
   }
 
-  toString() {
-    return this.name;
-  }
-
   getPosition() {
     return this.position;
   }
 
-  getPathElement(index: number) {
-    return this.path[index];
-  }
-
-  getPathLength() {
-    return this.path.length;
-  }
-
   getNextStopIdx() {
-      return this.next_stop_idx;
+      return this.nextStopIdx;
+  }
+
+  getStop(index: number) {
+    return this.stops[index];
+  }
+
+  getStopNames() {
+    return this.stops;
+  }
+
+  getStopsCount() {
+    return this.stops.length;
   }
 
   async updatePosition(time: number) {
-    const version = ++this._updateCallsCnt;
+    const version = ++this.updateCallsCnt;
 
     const nextPos = this.getNextPositionAt(time);
 
-    if (version !== this._updateCallsCnt)
+    if (version !== this.updateCallsCnt)
       return;
 
     this.position = nextPos;
   }
 
   private getNextPositionAt(time: number) {
-    if (this.path.length <= 1 || time <= this.stop_timestamps[1] ||
-        time >= this.stop_timestamps[this.stop_timestamps.length - 2]) return INVALID_COORD;
+    if (time <= this.stopTimestamps[1] || time >= this.stopTimestamps[this.stopTimestamps.length - 2]) return INVALID_COORD;
 
     let index = 0;
-    if (time >= this.last_time) // Jump stations if time goes forward
-        index = this.last_index;
+    if (time >= this.lastTime) // Jump stations if time goes forward
+        index = this.lastTimestampIndex;
 
-    while (index < this.stop_timestamps.length) {
-        if (this.stop_timestamps[index] >= time)
+    while (index < this.stopTimestamps.length) {
+        if (this.stopTimestamps[index] >= time)
             break;
 
         index += 2;
     }
-    this.last_index = index;
-    this.last_time = time;
+    this.lastTimestampIndex = index;
+    this.lastTime = time;
 
-    const arrival_timestamp = this.stop_timestamps[index];
-    const departure_timestamp = this.stop_timestamps[index - 1];
-    index = Math.floor((index - 1) / 2);
+    const arrival_timestamp = this.stopTimestamps[index];
+    const departure_timestamp = this.stopTimestamps[index - 1];
+    const stopIndex = Math.floor((index - 1) / 2);
 
-    if (index >= this.stop_idxs.length - 1)
+    if (stopIndex >= this.stops.length - 1)
         return INVALID_COORD;
 
-    if (time >= arrival_timestamp && time <= departure_timestamp)
-        return this.path[this.stop_idxs[index]];
+    if (time <= departure_timestamp)
+      return this.stopCoords[stopIndex];
 
-    const current_stop_idx = this.stop_idxs[index];
-    const next_stop_idx = this.stop_idxs[index + 1];
-    this.next_stop_idx = next_stop_idx;
+    this.nextStopIdx = stopIndex + 1;
+    const distanceBetweenStations = this.distanceBetweenStops[stopIndex + 1]
+    const timeRatio = timeElapsedPercentage(departure_timestamp, arrival_timestamp, time);
+    const distance = distanceBetweenStations * timeRatio;
 
-    let total_dist = this.distance_cache[index + 1];
-    const distance = total_dist * timeElapsedPercentage(departure_timestamp, arrival_timestamp, time);
+    if (distance < ALMOST_ZERO)
+      return this.stopCoords[stopIndex];
 
-    if (distance < 0.001)
-      return this.path[current_stop_idx];
+    if (timeRatio > ALMOST_ONE)
+      return this.stopCoords[stopIndex + 1];
 
     let current_dist = 0;
     let last_dist = 0;
-    let i = current_stop_idx;
-    for (; i < next_stop_idx && current_dist <= distance; i++) {
-        last_dist = dist(this.path[i], this.path[i + 1])
+    let i = 0;
+
+    if (stopIndex !== this.lastStopIndex) {
+      this.path = this.routingManager.getLinkPath(this.stops[stopIndex], this.stops[stopIndex + 1]);
+      this.lastStopIndex = stopIndex;
+    }
+
+    for (; i < this.path.length - 3 && current_dist <= distance; i += 2) {
+        last_dist = distanceBetween(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3])
         current_dist += last_dist;
     }
+
+    if (last_dist < ALMOST_ZERO)
+      return INVALID_COORD;
 
     const remaining_distance = current_dist - distance;
     const segment_ratio = (last_dist - remaining_distance) / last_dist;
 
-    return lerpCoord(this.path[i - 1], this.path[i], segment_ratio);
+    i -= 2;
+    return lerpCoord(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3], segment_ratio);
+  }
+
+  toString() {
+    return this.name;
   }
 }

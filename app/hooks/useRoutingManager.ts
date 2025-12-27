@@ -1,20 +1,35 @@
 import { useEffect, useRef } from "react";
-import { RoutingManager } from "../models/RouteManager";
-import { TrainStaticDataType } from "../utils/types";
+import { RoutingManager } from "../models/RoutingManager";
+import { LinkPathsDataType, StopCoordsDataType } from "../utils/types";
 
 "use client";
 
-export function useRoutingManager() {
+export function useRoutingManager(selectedDate: Date) {
   const routingManagerRef = useRef<RoutingManager | null>(null);
 
   useEffect(() => {
-    fetch("/api/v1/trains/static")
+    const year = selectedDate.getFullYear();
+
+    const selectedYear = selectedDate.getFullYear();
+    if (routingManagerRef.current?.getLastSelectedDate().getFullYear() === selectedYear)
+      return;
+
+    fetch("/api/v1/years/" + year + "/paths")
         .then((res) => res.json())
-        .then((data: TrainStaticDataType) => {
-            if (!routingManagerRef.current)
-              routingManagerRef.current = new RoutingManager(data.routePaths, data.routeStopIds, data.stopNames);
+        .then((data: LinkPathsDataType) => {
+          const linkPaths = data;
+
+          fetch("/api/v1/years/" + year + "/stops")
+          .then((res) => res.json())
+          .then((stopCoords: StopCoordsDataType) => {
+              if (!routingManagerRef.current)
+                routingManagerRef.current = new RoutingManager(selectedDate, linkPaths, stopCoords);
+              else
+                routingManagerRef.current.updateRoutingData(selectedDate, linkPaths, stopCoords);
+          });
         });
-  }, []);
+    
+  }, [selectedDate]);
 
   return { routingManager: routingManagerRef.current };
 }
