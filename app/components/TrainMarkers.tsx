@@ -5,7 +5,7 @@ import "./TrainMarker";
 
 type TrainMarkersProps = {
   trainManager: TrainManager | null;
-  setSelectedTrainId: (id: number) => void;
+  setSelectedTrainId: (id: string) => void;
 };
 
 export function TrainMarkers({trainManager, setSelectedTrainId}: TrainMarkersProps) {

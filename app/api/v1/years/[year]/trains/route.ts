@@ -15,8 +15,7 @@ export async function GET(_req: Request, { params }: Params) {
   const filePath = path.join(BASE_DATA_DIR, year, "train_data.json");
 
   try {
-    const jsonData = await readJSON(filePath);
-    const data = dictKeysToInt(jsonData);
+    const data = await readJSON(filePath);
 
     return NextResponse.json<TrainDataType>(
       data,

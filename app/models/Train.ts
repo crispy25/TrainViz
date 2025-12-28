@@ -6,7 +6,7 @@ import { RoutingManager } from "./RoutingManager";
 
 
 export class Train {
-  private id: number
+  private id: string
   private name: string
   private activeDays: number
   private stops: string[] = []
@@ -24,7 +24,7 @@ export class Train {
 
   private routingManager: RoutingManager;
 
-  constructor(id: number, meta: TrainMetaDataType, routingManager: RoutingManager) {
+  constructor(id: string, meta: TrainMetaDataType, routingManager: RoutingManager) {
     this.id = id;
     this.name = meta.name + " " + id.toString();
     this.activeDays = meta.activeDays;

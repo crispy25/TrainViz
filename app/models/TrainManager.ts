@@ -20,7 +20,7 @@ export class TrainManager {
     this.lastSelectedDate = date;
     this.trains = {}
 
-    const trainIds = Object.keys(trainData).slice(0, this.maxActiveTrains).map(Number);
+    const trainIds = Object.keys(trainData).slice(0, this.maxActiveTrains);
     trainIds.forEach((id) => {
       const train = new Train(id, trainData[id], this.routingManager);
       this.trains[id] = train;
@@ -43,7 +43,7 @@ export class TrainManager {
     return this.activeTrains;
   }
 
-  getTrain(id: number) {
+  getTrain(id: string) {
     return this.trains[id];
   }
 
