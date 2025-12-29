@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJSON } from "@/app/utils/server-utils";
-import { LinkPathsDataType } from "@/app/utils/types";
+import { LinkPaths } from "@/app/utils/types";
 import { BASE_DATA_DIR } from "@/app/utils/constants";
 import path from "path";
 
@@ -17,7 +17,7 @@ export async function GET(_req: Request, { params }: Params) {
   try {
     const data = await readJSON(filePath);
 
-    return NextResponse.json<LinkPathsDataType>(
+    return NextResponse.json<LinkPaths>(
       data,
       {
         // TODO: Add caching

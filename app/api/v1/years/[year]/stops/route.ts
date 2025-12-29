@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { StopCoordsDataType } from "@/app/utils/types";
+import { StopCoords } from "@/app/utils/types";
 import { BASE_DATA_DIR } from "@/app/utils/constants";
 import { readJSON } from "@/app/utils/server-utils";
 import path from "path";
@@ -17,7 +17,7 @@ export async function GET(_req: Request, { params }: Params) {
   try {
     const data = await readJSON(filePath);
 
-    return NextResponse.json<StopCoordsDataType>(
+    return NextResponse.json<StopCoords>(
       data,
       {
         // TODO: Add caching

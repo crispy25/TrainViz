@@ -1,19 +1,19 @@
 import { distanceBetween } from "../utils/client-utils";
 import { EMPTY_PATH, INVALID_DATE, STOPS_SEPARATOR } from "../utils/constants";
-import { Coord, LinkPathsDataType, StopCoordsDataType } from "../utils/types";
+import { Coord, LinkPaths, StopCoords } from "../utils/types";
 
 
 export class RoutingManager {
-  private linkPaths: LinkPathsDataType = {};
-  private stopCoords: StopCoordsDataType = {};
+  private linkPaths: LinkPaths = {};
+  private stopCoords: StopCoords = {};
   private linkDistances: { [id: string] : number } = {};
   private lastSelectedDate: Date = INVALID_DATE;
 
-  constructor(date: Date, linkPaths: LinkPathsDataType, stopCoords: StopCoordsDataType) {
+  constructor(date: Date, linkPaths: LinkPaths, stopCoords: StopCoords) {
     this.updateRoutingData(date, linkPaths, stopCoords);
   }
 
-  updateRoutingData(date: Date, linkPaths: LinkPathsDataType, stopCoords: StopCoordsDataType) {
+  updateRoutingData(date: Date, linkPaths: LinkPaths, stopCoords: StopCoords) {
     this.lastSelectedDate = date;
     this.linkPaths = linkPaths;
     this.stopCoords = stopCoords;

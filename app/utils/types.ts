@@ -8,7 +8,7 @@ export type Station = {
   name: string;
 };
 
-export type LinkPathsDataType = { [id: string] : Path };
-export type StopCoordsDataType = { [id: string] : Coord };
-export type TrainMetaDataType = { name: string, activeDays: number, stopNames: string[], stopTimes: Int32Array };
-export type TrainDataType = { [id: string] : TrainMetaDataType };
+export type LinkPaths = { [id: string] : Path };
+export type StopCoords = { [id: string] : Coord };
+export type TrainMetadata = { name: string, activeDays: number, stopNames: string[], stopTimes: Int32Array };
+export type TrainRegistry = { [id: string] : TrainMetadata };

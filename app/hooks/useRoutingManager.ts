@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { RoutingManager } from "../models/RoutingManager";
-import { LinkPathsDataType, StopCoordsDataType } from "../utils/types";
+import { LinkPaths, StopCoords } from "../utils/types";
 
 "use client";
 
@@ -16,12 +16,12 @@ export function useRoutingManager(selectedDate: Date) {
 
     fetch("/api/v1/years/" + year + "/paths")
         .then((res) => res.json())
-        .then((data: LinkPathsDataType) => {
+        .then((data: LinkPaths) => {
           const linkPaths = data;
 
           fetch("/api/v1/years/" + year + "/stops")
           .then((res) => res.json())
-          .then((stopCoords: StopCoordsDataType) => {
+          .then((stopCoords: StopCoords) => {
               if (!routingManagerRef.current)
                 routingManagerRef.current = new RoutingManager(selectedDate, linkPaths, stopCoords);
               else

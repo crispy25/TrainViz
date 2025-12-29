@@ -1,7 +1,7 @@
 import { INFINITE_CACHE } from "next/dist/lib/constants";
-import { Coord, Path, TrainMetaDataType } from "../utils/types";
+import { Coord, Path, TrainMetadata } from "../utils/types";
 import { timeElapsedPercentage, lerpCoord, distanceBetween } from "../utils/client-utils";
-import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD } from "../utils/constants";
+import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD, SECONDS_IN_A_DAY } from "../utils/constants";
 import { RoutingManager } from "./RoutingManager";
 
 
@@ -9,41 +9,67 @@ export class Train {
   private id: string
   private name: string
   private activeDays: number
-  private stops: string[] = []
-  private stopTimestamps: Int32Array = new Int32Array()
-  private nextStopIdx: number = 1
+
   private path: Path = new Float32Array();
+  private stops: string[] = []
   private stopCoords: Coord[] = [];
-  private updateCallsCnt: number = 0
+  private stopTimestamps: Int32Array = new Int32Array()
+  private normalizedStopTimestamps: Int32Array = new Int32Array()
   private distanceBetweenStops: Float32Array = new Float32Array()
+  private nextStopIdx: number = 1
+
+  private hasOverflowTimestamps: boolean = false
+  private overflowTimestampsCount: number = 0
+  private firstOverflowTimestampIdx: number = -1
+  private lowestDepartureTimestamp: number
+  private highestArrivalTimestamp: number
+
+  private updateCallsCnt: number = 0
   private position: Coord = INVALID_COORD;
 
-  private lastStopIndex: number = -1
-  private lastTimestampIndex: number = -1
+  private lastStopIdx: number = -1
+  private lastTimestampIdx: number = -1
   private lastTime: number = INFINITE_CACHE
 
   private routingManager: RoutingManager;
 
-  constructor(id: string, meta: TrainMetaDataType, routingManager: RoutingManager) {
+  constructor(id: string, meta: TrainMetadata, routingManager: RoutingManager) {
     this.id = id;
-    this.name = meta.name + " " + id.toString();
+    this.name = meta.name + " " + id;
     this.activeDays = meta.activeDays;
-    this.stopTimestamps = meta.stopTimes;
+
     this.stops = meta.stopNames;
+    this.stopTimestamps = meta.stopTimes;
+    this.normalizedStopTimestamps = this.stopTimestamps;
+    this.lowestDepartureTimestamp = this.stopTimestamps[1];
+    this.highestArrivalTimestamp = this.stopTimestamps[meta.stopTimes.length - 2];
+    this.overflowTimestampsCount = meta.stopTimes.length;
 
     this.routingManager = routingManager;
     this.distanceBetweenStops = routingManager.getDistanceBetweenStops(this.stops);
     this.stopCoords = this.stops.map((stop) => routingManager.getStopCoords(stop));
+
+    let index = -1;
+    for (let i = 2 ; i < meta.stopTimes.length; i += 2)
+      if (meta.stopTimes[i] >= SECONDS_IN_A_DAY) {
+        this.hasOverflowTimestamps = true;
+        index = i;
+        break;
+      }
+
+    if (index >= 0) {
+      const overflowTimestamps = meta.stopTimes.slice(index).map(time => time % SECONDS_IN_A_DAY);
+      this.normalizedStopTimestamps = new Int32Array(meta.stopTimes);
+      this.overflowTimestampsCount = overflowTimestamps.length;
+      this.firstOverflowTimestampIdx = index;
+
+      this.normalizedStopTimestamps.set(overflowTimestamps);
+      this.normalizedStopTimestamps.set(meta.stopTimes.slice(0, index), overflowTimestamps.length);
+    }
   }
 
   isActiveOnDay(dayOfWeek: number) {
     return this.activeDays & (1 << dayOfWeek);
-  }
-
-  clearCache() {
-    this.lastTime = INFINITE_CACHE
-    this.lastTimestampIndex = -1
-    this.lastStopIndex = -1
   }
 
   getID() {
@@ -81,65 +107,78 @@ export class Train {
     this.position = nextPos;
   }
 
-  private getNextPositionAt(time: number) {
-    if (time <= this.stopTimestamps[1] || time >= this.stopTimestamps[this.stopTimestamps.length - 2]) return INVALID_COORD;
+  private isActiveAtTime(time: number) {
+    return (!this.hasOverflowTimestamps && (time > this.lowestDepartureTimestamp && time < this.highestArrivalTimestamp)) ||
+            (this.hasOverflowTimestamps && (time < this.highestArrivalTimestamp - SECONDS_IN_A_DAY || time > this.lowestDepartureTimestamp));
+  }
 
+  private getNextPositionAt(time: number) {
+    if (!this.isActiveAtTime(time))
+      return INVALID_COORD;
+ 
     let index = 0;
     if (time >= this.lastTime) // Jump stations if time goes forward
-        index = this.lastTimestampIndex;
+        index = this.lastTimestampIdx;
 
-    while (index < this.stopTimestamps.length) {
-        if (this.stopTimestamps[index] >= time)
+    while (index < this.normalizedStopTimestamps.length) {
+        if (this.normalizedStopTimestamps[index] >= time)
             break;
 
         index += 2;
     }
-    this.lastTimestampIndex = index;
+
+    if (index >= this.normalizedStopTimestamps.length)
+      index = 0;
+
+    this.lastTimestampIdx = index;
     this.lastTime = time;
 
-    const arrival_timestamp = this.stopTimestamps[index];
-    const departure_timestamp = this.stopTimestamps[index - 1];
-    const stopIndex = Math.floor((index - 1) / 2);
+    const timestampIndex = index + (this.hasOverflowTimestamps ? (index < this.overflowTimestampsCount ? this.firstOverflowTimestampIdx : -this.overflowTimestampsCount) : 0);
+    const arrivalTimestamp = this.stopTimestamps[timestampIndex];
+    const departureTimestamp = this.stopTimestamps[timestampIndex - 1];
+    const stopIndex = Math.floor((timestampIndex - 1) / 2);
 
-    if (stopIndex >= this.stops.length - 1)
+    if (stopIndex < 0 || stopIndex >= this.stops.length - 1)
         return INVALID_COORD;
 
-    if (time <= departure_timestamp)
-      return this.stopCoords[stopIndex];
+    time += (this.hasOverflowTimestamps && index < this.overflowTimestampsCount && time < this.normalizedStopTimestamps[timestampIndex] ? SECONDS_IN_A_DAY : 0);
 
+    if (time < departureTimestamp)
+      return this.stopCoords[stopIndex];
+    
     this.nextStopIdx = stopIndex + 1;
     const distanceBetweenStations = this.distanceBetweenStops[stopIndex + 1]
-    const timeRatio = timeElapsedPercentage(departure_timestamp, arrival_timestamp, time);
-    const distance = distanceBetweenStations * timeRatio;
+    const timeRatio = timeElapsedPercentage(departureTimestamp, arrivalTimestamp, time);
 
-    if (distance < ALMOST_ZERO)
+    if (timeRatio < ALMOST_ZERO)
       return this.stopCoords[stopIndex];
 
     if (timeRatio > ALMOST_ONE)
       return this.stopCoords[stopIndex + 1];
 
-    let current_dist = 0;
-    let last_dist = 0;
+    const distance = distanceBetweenStations * timeRatio;
+    let currentDist = 0;
+    let lastDist = 0;
     let i = 0;
 
-    if (stopIndex !== this.lastStopIndex) {
+    if (stopIndex !== this.lastStopIdx) {
       this.path = this.routingManager.getLinkPath(this.stops[stopIndex], this.stops[stopIndex + 1]);
-      this.lastStopIndex = stopIndex;
+      this.lastStopIdx = stopIndex;
     }
 
-    for (; i < this.path.length - 3 && current_dist <= distance; i += 2) {
-        last_dist = distanceBetween(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3])
-        current_dist += last_dist;
+    for (; i < this.path.length - 3 && currentDist <= distance; i += 2) {
+        lastDist = distanceBetween(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3])
+        currentDist += lastDist;
     }
 
-    if (last_dist < ALMOST_ZERO)
+    if (lastDist < ALMOST_ZERO)
       return INVALID_COORD;
 
-    const remaining_distance = current_dist - distance;
-    const segment_ratio = (last_dist - remaining_distance) / last_dist;
+    const remainingDistance = currentDist - distance;
+    const segmentRatio = (lastDist - remainingDistance) / lastDist;
 
     i -= 2;
-    return lerpCoord(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3], segment_ratio);
+    return lerpCoord(this.path[i], this.path[i + 1], this.path[i + 2], this.path[i + 3], segmentRatio);
   }
 
   toString() {

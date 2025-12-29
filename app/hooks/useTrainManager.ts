@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { TrainManager } from "../models/TrainManager";
 import { RoutingManager } from "../models/RoutingManager";
-import { TrainDataType } from "../utils/types";
+import { TrainRegistry } from "../utils/types";
 
 "use client";
 
@@ -21,7 +21,7 @@ export function useTrainManager(routingManager: RoutingManager | null, selectedD
   
     fetch("/api/v1/years/" + selectedYear + "/trains")
       .then((res) => res.json())
-      .then((data: TrainDataType) => {
+      .then((data: TrainRegistry) => {
         if (!trainManagerRef.current)
           trainManagerRef.current = new TrainManager(routingManager);
         trainManagerRef.current?.updateTrainData(selectedDate, data);

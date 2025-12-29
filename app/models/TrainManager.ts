@@ -1,5 +1,5 @@
 import { INVALID_DATE, MAX_ACTIVE_TRAINS } from "../utils/constants";
-import { TrainDataType } from "../utils/types";
+import { TrainRegistry } from "../utils/types";
 import { RoutingManager } from "./RoutingManager";
 import { Train } from "./Train";
 
@@ -16,7 +16,7 @@ export class TrainManager {
       this.maxActiveTrains = maxActiveTrains;
   }
 
-  updateTrainData(date: Date, trainData: TrainDataType) {
+  updateTrainData(date: Date, trainData: TrainRegistry) {
     this.lastSelectedDate = date;
     this.trains = {}
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { dictKeysToInt, readJSON } from "@/app/utils/server-utils";
 import { BASE_DATA_DIR } from "@/app/utils/constants";
-import { TrainDataType } from "@/app/utils/types";
+import { TrainRegistry } from "@/app/utils/types";
 import path from "path";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ export async function GET(_req: Request, { params }: Params) {
   try {
     const data = await readJSON(filePath);
 
-    return NextResponse.json<TrainDataType>(
+    return NextResponse.json<TrainRegistry>(
       data,
       {
         // TODO: Add caching
