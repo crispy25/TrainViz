@@ -1,6 +1,7 @@
 import { Marker, Popup } from "react-leaflet";
 import { TrainManager } from "../models/TrainManager";
 import { INVALID_COORD } from "../utils/constants";
+import { secondsToHM } from "../utils/client-utils";
 import "./TrainMarker";
 
 type TrainMarkersProps = {
@@ -32,7 +33,9 @@ export function TrainMarkers({trainManager, setSelectedTrainId}: TrainMarkersPro
                 <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.toString()}</span><br />
                 <span style={{ fontSize: "12px" }}>
                 🛤️ Route: {routeStart} - {routeEnd}<br />
-                ⏭️ Next Stop: {nextStop}
+                ⏭️ Next Stop: {nextStop}<br />
+                🕙 Arrives in: {secondsToHM(train.getSecondsToNextStop())}<br />
+                🚄 Speed: {train.getSpeed().toFixed(2)} km/h
                 </span>
               </Popup>
             </Marker>

@@ -1,7 +1,7 @@
 import { INFINITE_CACHE } from "next/dist/lib/constants";
 import { Coord, Path, TrainMetadata } from "../utils/types";
 import { timeElapsedPercentage, lerpCoord, distanceBetween } from "../utils/client-utils";
-import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD, SECONDS_IN_A_DAY } from "../utils/constants";
+import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD, M_OVER_S_TO_KM_OVER_H, SECONDS_IN_A_DAY, SECONDS_IN_AN_HOUR } from "../utils/constants";
 import { RoutingManager } from "./RoutingManager";
 
 
@@ -16,16 +16,18 @@ export class Train {
   private stopTimestamps: Int32Array = new Int32Array()
   private normalizedStopTimestamps: Int32Array = new Int32Array()
   private distanceBetweenStops: Float32Array = new Float32Array()
-  private nextStopIdx: number = 1
-
+  
   private hasOverflowTimestamps: boolean = false
   private overflowTimestampsCount: number = 0
   private firstOverflowTimestampIdx: number = -1
   private lowestDepartureTimestamp: number
   private highestArrivalTimestamp: number
-
+  
   private updateCallsCnt: number = 0
-  private position: Coord = INVALID_COORD;
+  private position: Coord = INVALID_COORD
+  private nextStopIdx: number = 1
+  private secondsToNextStop: number = 0
+  private speed: number = 0;
 
   private lastStopIdx: number = -1
   private lastTimestampIdx: number = -1
@@ -78,6 +80,14 @@ export class Train {
 
   getPosition() {
     return this.position;
+  }
+
+  getSpeed() {
+    return this.speed;
+  }
+
+  getSecondsToNextStop() {
+    return this.secondsToNextStop;
   }
 
   getNextStopIdx() {
@@ -143,20 +153,23 @@ export class Train {
 
     time += (this.hasOverflowTimestamps && index < this.overflowTimestampsCount && time < this.normalizedStopTimestamps[timestampIndex] ? SECONDS_IN_A_DAY : 0);
 
+    this.speed = 0;
+    this.nextStopIdx = stopIndex + 1;
+    this.secondsToNextStop = arrivalTimestamp - time;
     if (time < departureTimestamp)
       return this.stopCoords[stopIndex];
-    
-    this.nextStopIdx = stopIndex + 1;
+
     const distanceBetweenStations = this.distanceBetweenStops[stopIndex + 1]
     const timeRatio = timeElapsedPercentage(departureTimestamp, arrivalTimestamp, time);
-
+    
     if (timeRatio < ALMOST_ZERO)
       return this.stopCoords[stopIndex];
-
+    
     if (timeRatio > ALMOST_ONE)
       return this.stopCoords[stopIndex + 1];
-
+    
     const distance = distanceBetweenStations * timeRatio;
+    this.speed = (distanceBetweenStations - distance) / (arrivalTimestamp - time) * M_OVER_S_TO_KM_OVER_H;
     let currentDist = 0;
     let lastDist = 0;
     let i = 0;

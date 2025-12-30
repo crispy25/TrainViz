@@ -1,12 +1,20 @@
+import { EQUIRECTANGULAR_LAT_FACTOR, EQUIRECTANGULAR_LON_FACTOR, ONE_DEGREE } from "./constants";
 import { Coord } from "./types";
 
 
-export function secondsToTimeStr(sec: number): string {
+export function secondsToHMS(sec: number): string {
   const h = (sec / 3600) | 0;
   const m = ((sec / 60) | 0) % 60;
   const s = sec % 60;
 
   return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+}
+
+export function secondsToHM(sec: number): string {
+  const h = (sec / 3600) | 0;
+  const m = ((sec / 60) | 0) % 60;
+
+  return (h === 0 ? "" : h + " h ") + m + " min";
 }
 
 export function isDaytime(sec: number): boolean {
@@ -15,8 +23,8 @@ export function isDaytime(sec: number): boolean {
 }
 
 export function distanceBetween(x1: number, y1: number, x2: number, y2: number): number {
-    const dx = x1 - x2;
-    const dy = y1 - y2;
+    const dx = (y2 - y1) * EQUIRECTANGULAR_LON_FACTOR * Math.cos(x1 * ONE_DEGREE);
+    const dy = (x2 - x1) * EQUIRECTANGULAR_LAT_FACTOR;
     return Math.sqrt(dx * dx + dy * dy);
 }
 

@@ -1,4 +1,4 @@
-import { secondsToTimeStr } from "../utils/client-utils";
+import { secondsToHMS } from "../utils/client-utils";
 import { SECONDS_IN_A_DAY } from "../utils/constants";
 import { DatePicker } from "./DatePicker";
 import { SettingsButton } from "./SettingsButton";
@@ -91,7 +91,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
         <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout}></SettingsButton>
       </div>
 
-      <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToTimeStr(time)}</div>
+      <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToHMS(time)}</div>
     </>
   );
 }
