@@ -125,7 +125,8 @@ export default function RailwayMap() {
 
     {/* Time slider */}
     <ControlBar time={time} setTime={setTime} timeAutoIncEnabled={timeAutoIncEnabled} setTimeAutoIncEnabled={setTimeAutoIncEnabled}
-                 selectedDate={selectedDate} setSelectedDate={setSelectedDate} setIsDragging={setIsDragging}
+                 selectedDate={selectedDate} setSelectedDate={setSelectedDate} trainOnRouteCount={trainManager?.getTrainsOnRouteCount()}
+                 setIsDragging={setIsDragging}
     />
   </div>
   );

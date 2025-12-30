@@ -13,12 +13,31 @@ interface ControlBarProps {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
 
+  trainOnRouteCount: number | undefined;
+
   setIsDragging: (v: boolean) => void;
 }
 
-export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled, selectedDate, setSelectedDate, setIsDragging}: ControlBarProps) {
+export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled, selectedDate, setSelectedDate, trainOnRouteCount, setIsDragging}: ControlBarProps) {
   return (
     <>
+      <div
+        style={{
+          position: "fixed",
+          bottom: 35,
+          left: 80,
+          zIndex: 1000,
+
+          border: "1px solid #ffffffff",
+          padding: "2px 14px",
+          backgroundColor: "#000000ff",
+          borderRadius: 8,
+          fontWeight: 550,
+        }}
+      >
+        Active trains: {trainOnRouteCount}
+      </div>
+
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: "14px" }}>
         <ToggleButton
           textOn="⏸️"
@@ -56,7 +75,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
         />
       </div>
 
-      <div style={{ textAlign: "center", marginTop: "2px" }}>Time: {secondsToTimeStr(time)}</div>
+      <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToTimeStr(time)}</div>
     </>
   );
 }

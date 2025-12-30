@@ -1,4 +1,4 @@
-import { INVALID_DATE, MAX_ACTIVE_TRAINS } from "../utils/constants";
+import { INVALID_COORD, INVALID_DATE, MAX_ACTIVE_TRAINS } from "../utils/constants";
 import { TrainRegistry } from "../utils/types";
 import { RoutingManager } from "./RoutingManager";
 import { Train } from "./Train";
@@ -33,7 +33,7 @@ export class TrainManager {
     for (const train of this.activeTrains)
       train.updatePosition(time);
   }
- 
+
   updateActiveTrains(date: Date) {
     const day = date.getDay();
     this.activeTrains = Object.values(this.trains).filter((train) => train.isActiveOnDay(day));
@@ -41,6 +41,10 @@ export class TrainManager {
 
   getActiveTrains() {
     return this.activeTrains;
+  }
+
+  getTrainsOnRouteCount() {
+    return this.activeTrains.filter(train => train.getPosition() !== INVALID_COORD).length;
   }
 
   getTrain(id: string) {
