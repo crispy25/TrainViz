@@ -1,6 +1,7 @@
 import { secondsToTimeStr } from "../utils/client-utils";
 import { SECONDS_IN_A_DAY } from "../utils/constants";
 import { DatePicker } from "./DatePicker";
+import { SettingsButton } from "./SettingsButton";
 import { ToggleButton } from "./ToggleButton";
 
 interface ControlBarProps {
@@ -13,12 +14,17 @@ interface ControlBarProps {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
 
+  intervalTimeout: number;
+  setIntervalTimeout: (time: number) => void;
+
   trainOnRouteCount: number | undefined;
 
   setIsDragging: (v: boolean) => void;
 }
 
-export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled, selectedDate, setSelectedDate, trainOnRouteCount, setIsDragging}: ControlBarProps) {
+export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled,
+                            selectedDate, setSelectedDate, intervalTimeout, setIntervalTimeout,
+                            trainOnRouteCount, setIsDragging}: ControlBarProps) {
   return (
     <>
       <div
@@ -63,7 +69,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
         style={{
           position: "fixed",
           bottom: 35,
-          right: 20,
+          right: 80,
           zIndex: 1000,
         }}
       >
@@ -73,6 +79,16 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           minYear={2024}
           maxYear={2025}
         />
+      </div>
+
+      <div
+       style={{
+          position: "fixed",
+          bottom: 32,
+          right: 20,
+          zIndex: 1000,
+        }}>
+        <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout}></SettingsButton>
       </div>
 
       <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToTimeStr(time)}</div>

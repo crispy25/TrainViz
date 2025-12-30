@@ -17,7 +17,6 @@ export default function RailwayMap() {
   const [isDragging, setIsDragging] = useState(false);
   const [timeAutoIncEnabled, setTimeAutoIncEnabled] = useState(true);
   const [selectedDate, setSelectedDate] = useState(DEFAULT_DATE);
-  const [timeIncValue, setTimeIncValue] = useState(1);
   const [intervalTimeout, setIntervalTimeout] = useState(1);
   const intervalRef = useRef<number | null>(null);
 
@@ -38,7 +37,7 @@ export default function RailwayMap() {
     if (timeAutoIncEnabled && !isDragging) {
       intervalRef.current = window.setInterval(() => {
       setTime((prev) => {
-        const newTime = prev + timeIncValue;
+        const newTime = prev + 1;
         if (newTime >= SECONDS_IN_A_DAY) {
           const newDate = new Date(selectedDate);
           newDate.setDate(selectedDate.getDate() + 1);
@@ -46,7 +45,7 @@ export default function RailwayMap() {
           return 0;
         }
         return newTime; 
-      })}, intervalTimeout); // adjust speed here
+      })}, intervalTimeout);
     }
   });
 
@@ -123,10 +122,10 @@ export default function RailwayMap() {
     ))}
     </MapContainer>
 
-    {/* Time slider */}
+    {/* Control Bar */}
     <ControlBar time={time} setTime={setTime} timeAutoIncEnabled={timeAutoIncEnabled} setTimeAutoIncEnabled={setTimeAutoIncEnabled}
-                 selectedDate={selectedDate} setSelectedDate={setSelectedDate} trainOnRouteCount={trainManager?.getTrainsOnRouteCount()}
-                 setIsDragging={setIsDragging}
+                selectedDate={selectedDate} setSelectedDate={setSelectedDate} intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} 
+                trainOnRouteCount={trainManager?.getTrainsOnRouteCount()} setIsDragging={setIsDragging}
     />
   </div>
   );
