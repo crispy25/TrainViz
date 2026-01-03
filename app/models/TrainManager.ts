@@ -11,9 +11,11 @@ export class TrainManager {
   private lastSelectedDate: Date = INVALID_DATE;
   private routingManager: RoutingManager;
 
-  constructor(routingManager: RoutingManager, maxActiveTrains: number = MAX_ACTIVE_TRAINS) {
+  constructor(routingManager: RoutingManager, date: Date, trainData: TrainRegistry, maxActiveTrains: number = MAX_ACTIVE_TRAINS) {
       this.routingManager = routingManager;
       this.maxActiveTrains = maxActiveTrains;
+
+      this.updateTrainData(date, trainData);
   }
 
   updateTrainData(date: Date, trainData: TrainRegistry) {

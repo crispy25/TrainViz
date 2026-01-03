@@ -22,14 +22,12 @@ export function useTrainManager(routingManager: RoutingManager | null, selectedD
     fetch("/api/v1/years/" + selectedYear + "/trains")
       .then((res) => res.json())
       .then((data: TrainRegistry) => {
-        if (!trainManagerRef.current)
-          trainManagerRef.current = new TrainManager(routingManager);
-        trainManagerRef.current?.updateTrainData(selectedDate, data);
+        trainManagerRef.current = new TrainManager(routingManager, selectedDate, data);
       })
       .catch((_) => {
-        trainManagerRef.current?.updateTrainData(selectedDate, {});
+        trainManagerRef.current = new TrainManager(routingManager, selectedDate, {});
       });
-  }, [routingManager, selectedDate]);
+  }, [routingManager]);
 
   return { trainManager: trainManagerRef.current };
 }

@@ -22,10 +22,7 @@ export function useRoutingManager(selectedDate: Date) {
           fetch("/api/v1/years/" + year + "/stops")
           .then((res) => res.json())
           .then((stopCoords: StopCoords) => {
-              if (!routingManagerRef.current)
-                routingManagerRef.current = new RoutingManager(selectedDate, linkPaths, stopCoords);
-              else
-                routingManagerRef.current.updateRoutingData(selectedDate, linkPaths, stopCoords);
+            routingManagerRef.current = new RoutingManager(selectedDate, linkPaths, stopCoords);
           });
         });
     
