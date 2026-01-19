@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSession, signIn } from "next-auth/react";
 import dynamic from "next/dynamic";
 
 const RailwayMap = dynamic(() => import("./components/RailwayMap"), {
@@ -7,5 +9,21 @@ const RailwayMap = dynamic(() => import("./components/RailwayMap"), {
 });
 
 export default function Page() {
-  return <RailwayMap />;
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      signIn("google");
+    }
+  }, [status]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (status === "authenticated") {
+    return <RailwayMap />;
+  }
+
+  return null;
 }
