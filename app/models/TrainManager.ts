@@ -3,6 +3,7 @@ import { TrainRegistry } from "../utils/types";
 import { RoutingManager } from "./RoutingManager";
 import { Train } from "./Train";
 
+export type StationTrain = {id: string; name: string; from: string; to: string; eta?: number; dt?: number;};
 
 export class TrainManager {
   private trains: { [id: string] : Train } = {}
@@ -55,5 +56,59 @@ export class TrainManager {
 
   getLastSelectedDate() {
     return this.lastSelectedDate;
+  }
+
+  getUpcomingArrivalsForStation(
+    stationName: string,
+    limit = 10
+  ): StationTrain[] {
+    const res: StationTrain[] = [];
+
+    for (const train of this.getActiveTrains()) {
+      const stopIdx = train.getStopIndexByName(stationName);
+      if (stopIdx === -1) continue;
+
+      const eta = train.getEtaSecondsToStop(stopIdx);
+      if (eta === null) continue;
+
+      res.push({
+        id: train.getID(),
+        name: train.toString(),
+        eta,
+        from: train.getStop(0),
+        to: train.getStop(train.getStopsCount() - 1),
+      });
+    }
+
+    res.sort((a, b) => (a.eta ?? 0) - (b.eta ?? 0));
+    return res.slice(0, limit);
+  }
+
+  getUpcomingDeparturesForStation(
+    stationName: string,
+    maxHours = 24,
+    limit = 20
+  ): StationTrain[] {
+    const maxSeconds = maxHours * 3600;
+    const res: StationTrain[] = [];
+
+    for (const train of this.getActiveTrains()) {
+      const idx = train.getStopIndexByName(stationName);
+      if (idx === -1) continue;
+
+      const dt = train.getSecondsToDepartureFromStop(idx);
+      if (dt === null || dt > maxSeconds) continue;
+
+      res.push({
+        id: train.getID(),
+        name: train.toString(),
+        dt,
+        from: train.getStop(0),
+        to: train.getStop(train.getStopsCount() - 1),
+      });
+    }
+
+    res.sort((a, b) => (a.dt ?? 0) - (b.dt ?? 0));
+    return res.slice(0, limit);
   }
 }

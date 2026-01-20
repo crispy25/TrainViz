@@ -197,4 +197,57 @@ export class Train {
   toString() {
     return this.name;
   }
+
+  private arrivalTime(stopIdx: number): number {
+    return this.stopTimestamps[2 * stopIdx];
+  }
+
+  private nextArrivalTime(): number | null {
+    if (this.nextStopIdx < 0 || this.nextStopIdx >= this.stops.length) return null;
+
+    const t = this.arrivalTime(this.nextStopIdx);
+    return this.hasOverflowTimestamps && t < this.lastTime
+      ? t + SECONDS_IN_A_DAY
+      : t;
+  }
+
+  getStopIndexByName(name: string): number {
+    return this.stops.indexOf(name);
+  }
+
+  getEtaSecondsToStop(stopIdx: number): number | null {
+    if (this.position === INVALID_COORD) return null;
+    if (stopIdx < this.nextStopIdx) return null;
+
+    const nextArr = this.nextArrivalTime();
+    if (nextArr === null) return null;
+
+    const now = nextArr - this.secondsToNextStop;
+
+    let targetArr = this.arrivalTime(stopIdx);
+    if (this.hasOverflowTimestamps && targetArr < this.lastTime)
+      targetArr += SECONDS_IN_A_DAY;
+
+    const eta = targetArr - now;
+    return eta >= 0 ? eta : null;
+  }
+
+  getSecondsToDepartureFromStop(stopIdx: number): number | null {
+    if (this.position === INVALID_COORD) return null;
+
+    const depIdx = 2 * stopIdx + 1;
+    if (depIdx >= this.stopTimestamps.length) return null;
+
+    let depTime = this.stopTimestamps[depIdx];
+    if (this.hasOverflowTimestamps && depTime < this.lastTime)
+      depTime += SECONDS_IN_A_DAY;
+
+    const nextArr = this.nextArrivalTime();
+    if (nextArr === null) return null;
+
+    const now = nextArr - this.secondsToNextStop;
+    const delta = depTime - now;
+
+    return delta >= 0 ? delta : null;
+  }
 }

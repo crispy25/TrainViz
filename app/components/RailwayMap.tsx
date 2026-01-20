@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import { isDaytime } from "../utils/client-utils";
+import { isDaytime, secondsToHM } from "../utils/client-utils";
 import { DEFAULT_DATE, INVALID_COORD, SECONDS_IN_A_DAY } from "../utils/constants";
 import { useRoutingManager } from "../hooks/useRoutingManager";
 import { useTrainManager } from "../hooks/useTrainManager";
@@ -23,6 +23,7 @@ export default function RailwayMap() {
   const [selectedTrainId, setSelectedTrainId] = useState<string | null>(null);
   const [selectedStations, setSelectedStations] = useState<Station[]>([]);
   const [selectedRouteCoords, setSelectedRouteCoords] = useState<Coord[]>([]);
+  const [stationTab, setStationTab] = useState<"arrivals" | "departures">("arrivals");
 
   const { routingManager } = useRoutingManager(selectedDate);
   const { trainManager } = useTrainManager(routingManager, selectedDate);
@@ -80,6 +81,12 @@ export default function RailwayMap() {
   setSelectedRouteCoords(path);
   }, [selectedTrainId]);
 
+  const trainsForStation = (stationName: string) =>
+  (stationTab === "arrivals"
+    ? trainManager?.getUpcomingArrivalsForStation(stationName)
+    : trainManager?.getUpcomingDeparturesForStation(stationName)
+  ) ?? [];
+  
   return (
   <div style={{ height: "100vh", width: "100%" }}>
     {/* Map */}
@@ -105,19 +112,89 @@ export default function RailwayMap() {
     {/* Selected train's stations */}
     {selectedStations.map((station, idx) => (
       <Marker
-      key={`station-${selectedTrainId}-${idx}`}
-      position={[station.lat, station.lng]}
-      icon={StationIcon}
+        key={`station-${selectedTrainId}-${idx}`}
+        position={[station.lat, station.lng]}
+        icon={StationIcon}
       >
-      <Popup>
-        <span style={{ fontSize: "15px", fontWeight: "bold" }}>
-        {isDaytime(time) ? "🏙️" : "🌆"} {station.name}
-        </span>
-        <br />
-        <span style={{ fontSize: "12px" }}>
-        {station.lat.toFixed(5)}, {station.lng.toFixed(5)}
-        </span>
-      </Popup>
+        <Popup maxWidth={480}>
+          {/* Nume stație */}
+          <div style={{ fontSize: 15, fontWeight: "bold" }}>
+            {isDaytime(time) ? "🏙️" : "🌆"} {station.name}
+          </div>
+
+          {/* Coordonate */}
+          <div style={{ fontSize: 12, marginBottom: 6 }}>
+            {station.lat.toFixed(5)}, {station.lng.toFixed(5)}
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+            <button
+              onClick={() => setStationTab("arrivals")}
+              style={{
+                padding: "3px 10px",
+                borderRadius: 4,
+                border: "1px solid #aaa",
+                backgroundColor: stationTab === "arrivals" ? "#000" : "#fff",
+                color: stationTab === "arrivals" ? "#fff" : "#000",
+                cursor: "pointer",
+              }}
+            >
+              Arrivals
+            </button>
+
+            <button
+              onClick={() => setStationTab("departures")}
+              style={{
+                padding: "3px 10px",
+                borderRadius: 4,
+                border: "1px solid #aaa",
+                backgroundColor: stationTab === "departures" ? "#000" : "#fff",
+                color: stationTab === "departures" ? "#fff" : "#000",
+                cursor: "pointer",
+              }}
+            >
+              Departures
+            </button>
+          </div>
+
+
+          {/* List of trains */}
+          <div
+            style={{
+              maxHeight: 120,
+              overflowY: "auto",
+              fontSize: 12,
+              paddingRight: 4,
+            }}
+          >
+            {trainsForStation(station.name).map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  marginBottom: 4,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                backgroundColor:
+                  (stationTab === "arrivals" && station.name === t.to) ||
+                  (stationTab === "departures" && station.name === t.from)
+                    ? "rgba(246, 249, 84, 0.12)"
+                    : "none",
+                  borderRadius: 4,
+                }}
+              >
+                🚆 {t.name} | ⏱️ {secondsToHM((t.eta ?? t.dt) ?? 0)} | 🛤️ {t.from} → {t.to}
+              </div>
+            ))}
+
+            {trainsForStation(station.name).length === 0 && (
+              <div>No trains</div>
+            )}
+
+          </div>
+
+        </Popup>
       </Marker>
     ))}
     </MapContainer>
