@@ -116,7 +116,8 @@ export default function RailwayMap() {
         position={[station.lat, station.lng]}
         icon={StationIcon}
       >
-        <Popup maxWidth={480}>
+        {/* <Popup> */}
+        <Popup maxWidth={480} className="my-popup">
           {/* Nume stație */}
           <div style={{ fontSize: 15, fontWeight: "bold" }}>
             {isDaytime(time) ? "🏙️" : "🌆"} {station.name}
@@ -175,7 +176,6 @@ export default function RailwayMap() {
                   marginBottom: 4,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
-                  textOverflow: "ellipsis",
                 backgroundColor:
                   (stationTab === "arrivals" && station.name === t.to) ||
                   (stationTab === "departures" && station.name === t.from)
@@ -184,7 +184,28 @@ export default function RailwayMap() {
                   borderRadius: 4,
                 }}
               >
-                🚆 {t.name} | ⏱️ {secondsToHM((t.eta ?? t.dt) ?? 0)} | 🛤️ {t.from} → {t.to}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {/* Tren */}
+                  <div style={{ width: 75}}>
+                    🚆 {t.name}
+                  </div>
+
+                  {/* ETA */}
+                  <div style={{ width: 85}}>
+                    | ⏱️ {secondsToHM((t.eta ?? t.dt) ?? 0)}
+                  </div>
+
+                  {/* Rută */}
+                  <div style={{ flexGrow: 1 }}>
+                    | 🛤️ {t.from} → {t.to}
+                  </div>
+                </div>
               </div>
             ))}
 

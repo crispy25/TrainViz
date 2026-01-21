@@ -29,7 +29,7 @@ export function TrainMarkers({trainManager, setSelectedTrainId}: TrainMarkersPro
               position={[trainPosition[0], trainPosition[1]]}
               eventHandlers={{ click: () => setSelectedTrainId(id) }}
             > 
-              <Popup offset={[0, -10]}>
+              <Popup offset={[0, -10]} className="my-popup">
                 <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.toString()}</span><br />
                 <span style={{ fontSize: "12px" }}>
                 🛤️ Route: {routeStart} - {routeEnd}<br />
