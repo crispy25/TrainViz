@@ -4,10 +4,10 @@ type ToggleTextButtonProps = {
   textOff: string;
   isOn: boolean;
   onToggle: () => void;
-  position?: any;
+  fontSize?: number;
 };
 
-export function ToggleButton({textOn, textOff, isOn, onToggle,}: ToggleTextButtonProps) {
+export function ToggleButton({textOn, textOff, isOn, onToggle, fontSize = 28}: ToggleTextButtonProps) {
   return (
     <button
       onClick={onToggle}
@@ -17,7 +17,7 @@ export function ToggleButton({textOn, textOff, isOn, onToggle,}: ToggleTextButto
     >
       <span
         style={{
-          fontSize: 28,
+          fontSize: fontSize,
           lineHeight: 1,
         }}
       >

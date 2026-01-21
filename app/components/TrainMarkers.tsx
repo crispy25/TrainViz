@@ -2,6 +2,7 @@ import { Marker, Popup } from "react-leaflet";
 import { TrainManager } from "../models/TrainManager";
 import { INVALID_COORD } from "../utils/constants";
 import { secondsToHM } from "../utils/client-utils";
+import { FavoriteButton } from "./FavoriteButton";
 import "./TrainMarker";
 
 type TrainMarkersProps = {
@@ -30,13 +31,30 @@ export function TrainMarkers({trainManager, setSelectedTrainId}: TrainMarkersPro
               eventHandlers={{ click: () => setSelectedTrainId(id) }}
             > 
               <Popup offset={[0, -10]} className="my-popup">
-                <span style={{ fontSize: "15px", fontWeight: "bold" }}>🚉 Train {train.toString()}</span><br />
-                <span style={{ fontSize: "12px" }}>
-                🛤️ Route: {routeStart} - {routeEnd}<br />
-                ⏭️ Next Stop: {nextStop}<br />
-                🕙 Arrives in: {secondsToHM(train.getSecondsToNextStop())}<br />
-                🚄 Speed: {train.getSpeed().toFixed(2)} km/h
-                </span>
+                <div style={{ position: "relative", paddingRight: 30}}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 8,
+                      transform: "translate(50%, -50%)",
+                      zIndex: 10,
+                    }}
+                  >
+                    <FavoriteButton trainId={id} />
+                  </div>
+
+                  <span style={{ fontSize: "15px", fontWeight: "bold" }}>
+                    🚉 Train {train.toString()}
+                  </span>
+                  <br />
+                  <span style={{ fontSize: "12px" }}>
+                    🛤️ Route: {routeStart} - {routeEnd}<br />
+                    ⏭️ Next Stop: {nextStop}<br />
+                    🕙 Arrives in: {secondsToHM(train.getSecondsToNextStop())}<br />
+                    🚄 Speed: {train.getSpeed().toFixed(2)} km/h
+                  </span>
+                </div>
               </Popup>
             </Marker>
             )
