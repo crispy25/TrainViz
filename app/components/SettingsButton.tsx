@@ -6,12 +6,14 @@ interface SettingsButtonProps {
   intervalTimeout: number;
   setIntervalTimeout: (time: number) => void;
   onToggleFavorites?: (value: boolean) => void;
+  isGuest?: boolean;
 }
 
 export function SettingsButton({
   intervalTimeout,
   setIntervalTimeout,
   onToggleFavorites,
+  isGuest,
 }: SettingsButtonProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
@@ -93,24 +95,49 @@ export function SettingsButton({
             />
           </div>
 
-          <div
-            style={{
-              fontWeight: 550,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span>Show only favorite trains</span>
-            <ToggleButton
-              textOn="🗹"
-              textOff="☐"
-              isOn={showFavorites}
-              onToggle={handleToggleFavorites}
-              fontSize={20}
-            />
-          </div>
+          {/* Show only favorite trains */}
+          {onToggleFavorites && (
+            <div
+              style={{
+                fontWeight: 550,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span>Show only favorite trains</span>
+              <ToggleButton
+                textOn="🗹"
+                textOff="☐"
+                isOn={showFavorites}
+                onToggle={handleToggleFavorites}
+                fontSize={20}
+              />
+            </div>
+          )}
+
+          {/* Login with Google */}
+          {isGuest && (
+            <button
+              style={{
+                padding: "6px 10px",
+                borderRadius: 4,
+                border: "1px solid #fff",
+                backgroundColor: "#111",
+                color: "#fff",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+              onClick={() => {
+                localStorage.removeItem("authMode");
+                window.location.reload();
+              }}
+            >
+              🔐 Login with Google
+            </button>
+          )}
+
         </div>
       )}
     </div>

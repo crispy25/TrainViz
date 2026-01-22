@@ -11,6 +11,10 @@ type FavoriteButtonProps = {
 export function FavoriteButton({ trainId, trainManager }: FavoriteButtonProps) {
   if (!trainManager) return null;
 
+  const isGuest = typeof window !== "undefined" && localStorage.getItem("authMode") === "guest";
+
+  if (isGuest) return null;
+
   const isOn = trainManager.getFavoriteTrains().includes(trainId);
 
   const handleToggle = async () => {

@@ -21,11 +21,13 @@ interface ControlBarProps {
   trainManager: TrainManager | null;
 
   setIsDragging: (v: boolean) => void;
+  
+  isGuest: boolean;
 }
 
 export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled,
                             selectedDate, setSelectedDate, intervalTimeout, setIntervalTimeout,
-                            trainManager, setIsDragging}: ControlBarProps) {
+                            trainManager, setIsDragging, isGuest}: ControlBarProps) {
   return (
     <>
       <div
@@ -89,7 +91,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           right: 20,
           zIndex: 1000,
         }}>
-        <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} onToggleFavorites={(isOn) => trainManager?.setShowFavoritesOnly(isOn)}></SettingsButton>
+        <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} onToggleFavorites={(isGuest ? undefined : (isOn) => trainManager?.setShowFavoritesOnly(isOn))} isGuest={isGuest}></SettingsButton>
       </div>
 
       <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToHMS(time)}</div>

@@ -25,6 +25,8 @@ export default function RailwayMap() {
   const [selectedRouteCoords, setSelectedRouteCoords] = useState<Coord[]>([]);
   const [stationTab, setStationTab] = useState<"arrivals" | "departures">("arrivals");
 
+  const isGuest = typeof window !== "undefined" && localStorage.getItem("authMode") === "guest";
+
   const { routingManager } = useRoutingManager(selectedDate);
   const { trainManager } = useTrainManager(routingManager, selectedDate);
 
@@ -223,7 +225,7 @@ export default function RailwayMap() {
     {/* Control Bar */}
     <ControlBar time={time} setTime={setTime} timeAutoIncEnabled={timeAutoIncEnabled} setTimeAutoIncEnabled={setTimeAutoIncEnabled}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate} intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} 
-                trainManager={trainManager} setIsDragging={setIsDragging}
+                trainManager={trainManager} setIsDragging={setIsDragging} isGuest={isGuest}
     />
   </div>
   );
