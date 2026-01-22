@@ -1,7 +1,7 @@
 import { INFINITE_CACHE } from "next/dist/lib/constants";
 import { Coord, Path, TrainMetadata } from "../utils/types";
 import { timeElapsedPercentage, lerpCoord, distanceBetween } from "../utils/client-utils";
-import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD, M_OVER_S_TO_KM_OVER_H, SECONDS_IN_A_DAY, SECONDS_IN_AN_HOUR } from "../utils/constants";
+import { ALMOST_ONE, ALMOST_ZERO, INVALID_COORD, M_OVER_S_TO_KM_OVER_H, SECONDS_IN_A_DAY } from "../utils/constants";
 import { RoutingManager } from "./RoutingManager";
 
 

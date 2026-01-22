@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NumberSlider } from "./NumberSlider";
 import { ToggleButton } from "./ToggleButton";
+import { signOut } from "next-auth/react";
 
 interface SettingsButtonProps {
   intervalTimeout: number;
@@ -73,7 +74,7 @@ export function SettingsButton({
             zIndex: 1000,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div
               style={{
                 fontWeight: 550,
@@ -121,7 +122,7 @@ export function SettingsButton({
           )}
 
           {/* Login with Google */}
-          {isGuest && (
+           {isGuest ? (
             <button
               style={{
                 padding: "6px 10px",
@@ -136,6 +137,24 @@ export function SettingsButton({
               }}
             >
               🔐 Login with Google
+            </button>
+          ) : (
+            <button
+              style={{
+                padding: "4px 10px",
+                borderRadius: 4,
+                border: "1px solid",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+              onClick={() => {
+                signOut({ redirect: false }).then(() => {
+                  localStorage.removeItem("authMode");
+                  window.location.reload();
+                });
+              }}
+            > 
+              🚪 Logout
             </button>
           )}
 
