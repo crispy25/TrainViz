@@ -16,9 +16,9 @@ export function NumberSlider({value, min, max, step = 1, onChange}: NumberSlider
         max={max}
         step={step}
         onChange={(e) => onChange(Number(e.target.value))}
+        className="slider"
         style={{
           cursor: "pointer",
-          accentColor: "#ffffffff",
           height: 8,
           width: "100%",
         }}

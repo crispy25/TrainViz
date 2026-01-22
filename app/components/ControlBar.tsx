@@ -36,10 +36,8 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           bottom: 35,
           left: 80,
           zIndex: 1000,
-
-          border: "1px solid #ffffffff",
+          border: "1px solid",
           padding: "2px 14px",
-          backgroundColor: "#000000ff",
           borderRadius: 8,
           fontWeight: 550,
         }}
@@ -72,7 +70,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
         style={{
           position: "fixed",
           bottom: 35,
-          right: 80,
+          right: 90,
           zIndex: 1000,
         }}
       >

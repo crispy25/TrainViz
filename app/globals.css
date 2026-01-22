@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light dark;
 }
 
 @theme inline {
@@ -12,12 +13,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
+.slider {
+  accent-color: black;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+
+  .opposite-theme {
+    background-color: #fff;
+    color: #000;
+  }
+
+  .slider {
+    accent-color: white;
+  }
 }
+
 
 body {
   background: var(--background);

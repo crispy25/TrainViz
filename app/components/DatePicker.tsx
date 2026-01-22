@@ -15,6 +15,8 @@ export function DatePicker({ value, onChange, minYear, maxYear }: DatePickerProp
     return `${y}-${m}-${d}`;
   };
 
+  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
   return (
     <input
       type="date"
@@ -23,11 +25,12 @@ export function DatePicker({ value, onChange, minYear, maxYear }: DatePickerProp
       min={`${minYear}-01-01`}
       max={`${maxYear}-12-31`}
       style={{
-        backgroundColor: "#ffffffff",
-        color: "#000000ff",
-        border: "2px solid #ffffffff",
+        backgroundColor: isDark ? "#000000" : "#ffffff",
+        color: isDark ? "#ffffff" : "#000000",
+        colorScheme: isDark ? "dark" : "light",
+        border: "2px solid",
         borderRadius: "8px",
-        padding: "0px 8px"
+        padding: "0px 8px",
     }}
     />
   );

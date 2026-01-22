@@ -62,9 +62,10 @@ export function SettingsButton({
             bottom: "128%",
             right: 0,
             padding: 8,
-            border: "2px solid #ffffffff",
+            border: "2px solid",
             borderRadius: 2,
-            backgroundColor: "#000000ff",
+            backgroundColor: "Canvas",
+            color: "CanvasText",
             display: "flex",
             flexDirection: "column",
             gap: 10,
@@ -78,6 +79,8 @@ export function SettingsButton({
                 fontWeight: 550,
                 display: "flex",
                 justifyContent: "center",
+                backgroundColor: "Canvas",
+                color: "CanvasText",
                 gap: 4,
               }}
             >
@@ -123,9 +126,7 @@ export function SettingsButton({
               style={{
                 padding: "6px 10px",
                 borderRadius: 4,
-                border: "1px solid #fff",
-                backgroundColor: "#111",
-                color: "#fff",
+                border: "1px solid",
                 cursor: "pointer",
                 fontWeight: 600,
               }}
