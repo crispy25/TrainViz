@@ -223,7 +223,7 @@ export default function RailwayMap() {
     {/* Control Bar */}
     <ControlBar time={time} setTime={setTime} timeAutoIncEnabled={timeAutoIncEnabled} setTimeAutoIncEnabled={setTimeAutoIncEnabled}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate} intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} 
-                trainOnRouteCount={trainManager?.getTrainsOnRouteCount()} setIsDragging={setIsDragging}
+                trainManager={trainManager} setIsDragging={setIsDragging}
     />
   </div>
   );

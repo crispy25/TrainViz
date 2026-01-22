@@ -41,7 +41,7 @@ export function TrainMarkers({trainManager, setSelectedTrainId}: TrainMarkersPro
                       zIndex: 10,
                     }}
                   >
-                    <FavoriteButton trainId={id} />
+                    <FavoriteButton trainId={id} trainManager={trainManager} />
                   </div>
 
                   <span style={{ fontSize: "15px", fontWeight: "bold" }}>

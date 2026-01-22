@@ -39,3 +39,16 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({favoriteTrainIds: favorites.map((f: { trainId: string }) => f.trainId),});
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return NextResponse.error();
+
+  const { trainId } = await req.json();
+
+  await prisma.favoriteTrain.deleteMany({
+    where: { userId: session.user.id, trainId },
+  });
+
+  return NextResponse.json({ success: true });
+}

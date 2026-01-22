@@ -150,9 +150,8 @@ export class Train {
 
     if (stopIndex < 0 || stopIndex >= this.stops.length - 1)
         return INVALID_COORD;
-
-    time += (this.hasOverflowTimestamps && index < this.overflowTimestampsCount && time < this.normalizedStopTimestamps[timestampIndex] ? SECONDS_IN_A_DAY : 0);
-
+    
+    time += (this.hasOverflowTimestamps && index < this.overflowTimestampsCount ? SECONDS_IN_A_DAY : 0);
     this.speed = 0;
     this.nextStopIdx = stopIndex + 1;
     this.secondsToNextStop = arrivalTimestamp - time;

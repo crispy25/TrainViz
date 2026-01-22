@@ -23,6 +23,16 @@ export function useTrainManager(routingManager: RoutingManager | null, selectedD
       .then((res) => res.json())
       .then((data: TrainRegistry) => {
         trainManagerRef.current = new TrainManager(routingManager, selectedDate, data);
+
+        fetch("/api/v1/favorites")
+          .then((res) => res.json())
+          .then((favData) => {
+            const favoriteIds: string[] = favData.favoriteTrainIds ?? [];
+            trainManagerRef.current?.setFavoriteTrain(favoriteIds);
+          })
+          .catch(() => {
+          });
+
       })
       .catch((_) => {
         trainManagerRef.current = new TrainManager(routingManager, selectedDate, {});

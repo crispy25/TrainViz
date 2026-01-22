@@ -1,3 +1,4 @@
+import { TrainManager } from "../models/TrainManager";
 import { secondsToHMS } from "../utils/client-utils";
 import { SECONDS_IN_A_DAY } from "../utils/constants";
 import { DatePicker } from "./DatePicker";
@@ -17,14 +18,14 @@ interface ControlBarProps {
   intervalTimeout: number;
   setIntervalTimeout: (time: number) => void;
 
-  trainOnRouteCount: number | undefined;
+  trainManager: TrainManager | null;
 
   setIsDragging: (v: boolean) => void;
 }
 
 export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEnabled,
                             selectedDate, setSelectedDate, intervalTimeout, setIntervalTimeout,
-                            trainOnRouteCount, setIsDragging}: ControlBarProps) {
+                            trainManager, setIsDragging}: ControlBarProps) {
   return (
     <>
       <div
@@ -41,7 +42,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           fontWeight: 550,
         }}
       >
-        Active trains: {trainOnRouteCount}
+        Active trains: {trainManager?.getTrainsOnRouteCount()}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: "14px" }}>
@@ -88,7 +89,7 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           right: 20,
           zIndex: 1000,
         }}>
-        <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout}></SettingsButton>
+        <SettingsButton intervalTimeout={intervalTimeout} setIntervalTimeout={setIntervalTimeout} onToggleFavorites={(isOn) => trainManager?.setShowFavoritesOnly(isOn)}></SettingsButton>
       </div>
 
       <div style={{ textAlign: "center", marginTop: "2px", fontWeight: 700}}>Time: {secondsToHMS(time)}</div>

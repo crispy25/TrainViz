@@ -3,7 +3,7 @@ import { Coord } from "./types";
 
 export const SECONDS_IN_A_DAY = 86400; // 24 hours
 export const SECONDS_IN_AN_HOUR = 3600;
-export const MAX_ACTIVE_TRAINS = 512;
+export const MAX_ACTIVE_TRAINS = Infinity;
 export const EQUIRECTANGULAR_LAT_FACTOR = 110540;
 export const EQUIRECTANGULAR_LON_FACTOR = 111320;
 export const ONE_DEGREE = Math.PI / 180;
@@ -11,7 +11,7 @@ export const M_OVER_S_TO_KM_OVER_H = 3.6
 export const TRAIN_DEFAULT_NAME =  "";
 export const STOPS_SEPARATOR =  "->";
 export const INVALID_COORD = new Float32Array([-1, -1]) as Coord;
-export const DEFAULT_DATE = new Date();
+export const DEFAULT_DATE = new Date(2025, 10);
 export const INVALID_DATE = new Date(1000, 1);
 export const BASE_DATA_DIR = path.join(process.cwd(), "data", "years");
 export const EMPTY_PATH = new Float32Array();

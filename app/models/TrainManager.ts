@@ -12,6 +12,9 @@ export class TrainManager {
   private lastSelectedDate: Date = INVALID_DATE;
   private routingManager: RoutingManager;
 
+  private favoriteTrains: Set<string> = new Set();
+  private showFavoritesOnly: boolean = false;
+
   constructor(routingManager: RoutingManager, date: Date, trainData: TrainRegistry, maxActiveTrains: number = MAX_ACTIVE_TRAINS) {
       this.routingManager = routingManager;
       this.maxActiveTrains = maxActiveTrains;
@@ -39,7 +42,12 @@ export class TrainManager {
 
   updateActiveTrains(date: Date) {
     const day = date.getDay();
-    this.activeTrains = Object.values(this.trains).filter((train) => train.isActiveOnDay(day));
+    let active = Object.values(this.trains).filter((train) => train.isActiveOnDay(day));
+
+    if (this.showFavoritesOnly)
+      active = active.filter((train) => this.favoriteTrains.has(train.getID()));
+
+    this.activeTrains = active;
   }
 
   getActiveTrains() {
@@ -56,6 +64,47 @@ export class TrainManager {
 
   getLastSelectedDate() {
     return this.lastSelectedDate;
+  }
+
+  addFavorite(trainId: string) {
+    this.favoriteTrains.add(trainId);
+    if (this.showFavoritesOnly)
+      this.updateActiveTrains(this.lastSelectedDate);
+  }
+
+  removeFavorite(trainId: string) {
+    this.favoriteTrains.delete(trainId);
+    if (this.showFavoritesOnly)
+      this.updateActiveTrains(this.lastSelectedDate);
+  }
+
+  toggleFavorite(trainId: string) {
+    if (this.favoriteTrains.has(trainId))
+      this.removeFavorite(trainId);
+    else
+      this.addFavorite(trainId);
+  }
+
+  setShowFavoritesOnly(value: boolean) {
+    if (this.showFavoritesOnly === value)
+      return;
+
+    this.showFavoritesOnly = value;
+    this.updateActiveTrains(this.lastSelectedDate);
+  }
+
+  getShowFavoritesOnly() {
+    return this.showFavoritesOnly;
+  }
+
+  getFavoriteTrains() {
+    return Array.from(this.favoriteTrains);
+  }
+
+  setFavoriteTrain(favoriteTrainIds: string[]) {
+    this.favoriteTrains = new Set(favoriteTrainIds);
+    if (this.showFavoritesOnly)
+      this.updateActiveTrains(this.lastSelectedDate);
   }
 
   getUpcomingArrivalsForStation(

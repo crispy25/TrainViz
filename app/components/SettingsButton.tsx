@@ -5,10 +5,16 @@ import { ToggleButton } from "./ToggleButton";
 interface SettingsButtonProps {
   intervalTimeout: number;
   setIntervalTimeout: (time: number) => void;
+  onToggleFavorites?: (value: boolean) => void;
 }
 
-export function SettingsButton({ intervalTimeout, setIntervalTimeout }: SettingsButtonProps) {
+export function SettingsButton({
+  intervalTimeout,
+  setIntervalTimeout,
+  onToggleFavorites,
+}: SettingsButtonProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,6 +34,14 @@ export function SettingsButton({ intervalTimeout, setIntervalTimeout }: Settings
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [settingsOpen]);
+
+  const handleToggleFavorites = () => {
+    setShowFavorites((prev) => {
+      const newValue = !prev;
+      if (onToggleFavorites) onToggleFavorites(newValue);
+      return newValue;
+    });
+  };
 
   return (
     <div style={{ position: "relative" }}>
@@ -67,15 +81,34 @@ export function SettingsButton({ intervalTimeout, setIntervalTimeout }: Settings
             >
               <span>{"⏱️ Time multiplier"}:</span>
               <span style={{ width: 40, textAlign: "left" }}>
-                x{(intervalTimeout ?? 0) / 1000}
+                x{1001 - (intervalTimeout ?? 1)}
               </span>
             </div>
 
             <NumberSlider
-              value={intervalTimeout}
+              value={1001 - intervalTimeout}
               min={1}
               max={1000}
-              onChange={setIntervalTimeout}
+              onChange={(value) => setIntervalTimeout(1001 - value)}
+            />
+          </div>
+
+          <div
+            style={{
+              fontWeight: 550,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span>Show only favorite trains</span>
+            <ToggleButton
+              textOn="🗹"
+              textOff="☐"
+              isOn={showFavorites}
+              onToggle={handleToggleFavorites}
+              fontSize={20}
             />
           </div>
         </div>
