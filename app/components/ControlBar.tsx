@@ -40,6 +40,10 @@ export function ControlBar({time, setTime, timeAutoIncEnabled, setTimeAutoIncEna
           padding: "2px 14px",
           borderRadius: 8,
           fontWeight: 550,
+          width: 160,
+          height: 30,
+          overflow: "hidden",
+          whiteSpace: "nowrap"
         }}
       >
         Active trains: {trainManager?.getTrainsOnRouteCount()}

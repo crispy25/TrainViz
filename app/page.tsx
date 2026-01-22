@@ -39,11 +39,28 @@ export default function Page() {
           justifyContent: "center",
           alignItems: "center",
           gap: "16px",
+          fontSize: "24px",
         }}
       >
-        <h1 style={{ fontSize: "48px" }}>🚆 TrainVisualizer</h1>
+        <img
+          src="/TrainVisualizerLogo.png"
+          alt="TrainViz logo"
+          style={{
+            width: 360,
+            height: 360,
+            objectFit: "contain",
+            marginBottom: -80,
+          }}
+        />
+
 
         <button
+         style={{
+            border: "2px groove",
+            borderRadius: 16,
+            padding: "10px 24px",
+            cursor: "pointer",
+          }}
           onClick={() => {
             localStorage.setItem("authMode", "google");
             setAuthMode("google");
@@ -53,6 +70,12 @@ export default function Page() {
         </button>
 
         <button
+          style={{
+            border: "2px groove",
+            borderRadius: 16,
+            padding: "10px 24px",
+            cursor: "pointer",
+          }}
           onClick={() => {
             localStorage.setItem("authMode", "guest");
             setAuthMode("guest");
